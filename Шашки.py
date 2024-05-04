@@ -66,13 +66,12 @@ def get_clicked_cell(x, y):
 def can_move(piece_dict, to_pos):
     from_pos, is_king = piece_dict['position'], piece_dict['king']
 
-    # Проверка, что конечная позиция находится в пределах доски
     if to_pos[0] < 0 or to_pos[0] >= ROWS or to_pos[1] < 0 or to_pos[1] >= COLS:
-        return False, []  # Конечная позиция вне доски
+        return False, []
 
     occupied_positions = [p['position'] for p in white_pieces + black_pieces]
     if to_pos in occupied_positions:
-        return False, []  # Клетка уже занята
+        return False,
 
     fr, fc = from_pos
     tr, tc = to_pos
@@ -80,7 +79,7 @@ def can_move(piece_dict, to_pos):
     move_cols = abs(tc - fc)
 
     if move_rows != move_cols:
-        return False, []  # Ход не по диагонали
+        return False, []
 
     step_r = 1 if tr > fr else -1
     step_c = 1 if tc > fc else -1
@@ -94,14 +93,14 @@ def can_move(piece_dict, to_pos):
         if (r, c) in occupied_positions:
             piece_at_pos = next((p for p in white_pieces + black_pieces if p['position'] == (r, c)), None)
             if piece_at_pos and piece_at_pos in (white_pieces if player_turn == BLACK else black_pieces):
-                if meet_opponent:  # Второй оппонент встреченный на пути не допустим
+                if meet_opponent:
                     return False, []
                 meet_opponent = True
                 opponents_captured.append(piece_at_pos)
             else:
-                return False, []  # Путь блокирован
+                return False, []
 
-    # Проверка движения для обычных шашек (не королей)
+    # Проверка движения для обычных шашек
     if not is_king:
         direction_correct = (player_turn == WHITE and fr > tr) or (player_turn == BLACK and fr < tr)
         valid_normal_move = move_rows == 1 and direction_correct
@@ -115,7 +114,7 @@ def can_move(piece_dict, to_pos):
 
     return True, opponents_captured
 
-player_turn = WHITE  # WHITE - белые шашки, BLACK - черные шашки
+player_turn = WHITE
 
 def switch_player_turn():
     global player_turn
@@ -129,7 +128,7 @@ def move_piece(piece_dict, end_pos):
         pieces = white_pieces if piece_dict in white_pieces else black_pieces
         index = [p['position'] for p in pieces].index(start_pos)
         pieces[index]['position'] = end_pos
-        piece_dict['position'] = end_pos  # Обновление положения пешки в piece_dict
+        piece_dict['position'] = end_pos
 
 
 
@@ -194,7 +193,7 @@ def main():
                     valid_move, _ = can_move(piece, move)
                     if valid_move:
                         return True  # Найден хотя бы один допустимый ход
-            return False  # Нет возможных ходов, проигрыш
+            return False
 
         def game_loop():
             global player_turn
@@ -218,18 +217,19 @@ def main():
                                 if not check_any_valid_moves(next_player_pieces, next_opponent_pieces):
                                     winner = "белые" if player_turn == BLACK else "черные"
                                     wait_for_enter(f"Победили {winner}", screen)
-                                    return  # Завершаем игру
+                                    return 
                 if __name__ == "__main__":
                     game_loop()
 
                 draw_board()
                 draw_pieces()
                 pygame.display.flip()
-            # Здесь задаётся текущий игрок и его шашки, а также шашки противника
+            
+        
         player_pieces = white_pieces if player_turn == WHITE else black_pieces
         opponent_pieces = black_pieces if player_turn == WHITE else white_pieces
 
-        # Проверка на наличие возможных ходов
+        
         if not check_any_valid_moves(player_pieces, opponent_pieces):
             print(f"Игрок {'WHITE' if player_turn == WHITE else 'BLACK'} проиграл, так как не имеет допустимых ходов.")
             break
@@ -239,13 +239,13 @@ def main():
         pygame.display.flip()
 
         def wait_for_enter(message, screen):
-            font = pygame.font.Font(None, 56)  # Устанавливаем размер шрифта 36
-            text = font.render(message, True, (255, 255, 255))  # Устанавливаем белый цвет текста
+            font = pygame.font.Font(None, 56)
+            text = font.render(message, True, (255, 255, 255)) 
 
             text_rect = text.get_rect()
             text_rect.center = (WIDTH // 2, HEIGHT // 2)
 
-            screen.fill((0, 0, 0))  # Очищаем экран
+            screen.fill((0, 0, 0))
             screen.blit(text, text_rect)
             pygame.display.flip()
 
@@ -258,15 +258,7 @@ def main():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                         waiting = False
 
-
-
-
-
-
-
 # Создам главное окно
-
-
 
 def setup_game():
     style = ttk.Style()
@@ -393,15 +385,7 @@ def show_rules():
         is_rules_open = False
 def exit_game():
     sys.exit()
-
-
 setup_game()
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
