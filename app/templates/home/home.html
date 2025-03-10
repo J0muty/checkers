@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шашки</title>
+    <link rel="stylesheet" href="/static/home/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <img src="/static/images/logo.png" alt="thecheckers">
+            <h1>thecheckers</h1>
+        </div>
+        <nav>
+            {% if user %}
+                <a href="/profile">Профиль</a>
+            {% else %}
+                <a href="/login">Вход</a>
+                <a href="/register">Регистрация</a>
+            {% endif %}
+        </nav>
+        <button class="mobile-bar"><i class="fa-solid fa-bars"></i></button>
+    </header>
+    <div class="mobile-menu">
+        <i class="fa-solid fa-xmark mobile-menu-close"></i>
+        {% if user %}
+            <button class="mobile-profile">Профиль</button>
+        {% else %}
+            <button class="mobile-login">Вход</button>
+            <button class="mobile-register">Регистрация</button>
+        {% endif %}
+    </div>
+    <main>
+        <div class="menu-container">
+            <h2>Главное меню</h2>
+            <div class="buttons">
+                <button>Одиночная игра</button>
+                <button>Сетевая игра</button>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="/static/home/init.js"></script>
+</body>
+</html>
