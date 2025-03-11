@@ -14,7 +14,6 @@ export function initMobileMenu() {
         });
     }
 
-    // Навигация мобильного меню
     const mobileLogin = document.querySelector('.mobile-login');
     mobileLogin && mobileLogin.addEventListener('click', () => {
         window.location.href = '/login';
@@ -28,5 +27,9 @@ export function initMobileMenu() {
     const mobileProfile = document.querySelector('.mobile-profile');
     mobileProfile && mobileProfile.addEventListener('click', () => {
         window.location.href = '/profile';
+    });
+    const mobileLogout = document.querySelector('.mobile-logout');
+    mobileLogout && mobileLogout.addEventListener('click', () => {
+        window.location.href = '/logout';
     });
 }

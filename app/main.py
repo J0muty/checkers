@@ -40,7 +40,8 @@ async def logout(request: Request):
 async def profile(request: Request):
     if "user" not in request.session:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("profile/profile.html", {"request": request})
+    user = request.session.get("user")
+    return templates.TemplateResponse("profile/profile.html", {"request": request, "user": user})
 
 
 if __name__ == "__main__":
