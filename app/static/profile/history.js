@@ -1,55 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const backBtn = document.getElementById('backBtn');
-    const exitBtn = document.getElementById('exitBtn');
-    const friendsBtn = document.getElementById('friendsBtn');
-    const topBtn = document.getElementById('topBtn');
-    const statsBtn = document.getElementById('statsBtn');
-    const friendsBtnHamburger = document.getElementById('friendsBtnHamburger');
-    const topBtnHamburger = document.getElementById('topBtnHamburger');
-    const statsBtnHamburger = document.getElementById('statsBtnHamburger');
-    const hamburgerIcon = document.querySelector('.hamburger-menu i');
-    const dropdownMenu = document.querySelector('.hamburger-menu .dropdown-menu');
+export function initHistory() {
+    const historyBody = document.getElementById('historyBody');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     const hideBtn = document.getElementById('hideBtn');
-    const historyBody = document.getElementById('historyBody');
-
-    backBtn.addEventListener('click', () => {
-        window.location.href = '/';
-    });
-    exitBtn.addEventListener('click', () => {
-        window.location.href = '/logout';
-    });
-    friendsBtn.addEventListener('click', () => {
-        alert('Открыть список друзей');
-    });
-    topBtn.addEventListener('click', () => {
-        alert('Открыть топ игроков');
-    });
-    statsBtn.addEventListener('click', () => {
-        alert('Открыть статистику');
-    });
-    friendsBtnHamburger.addEventListener('click', () => {
-        alert('Открыть список друзей');
-        dropdownMenu.classList.remove('show');
-    });
-    topBtnHamburger.addEventListener('click', () => {
-        alert('Открыть топ игроков');
-        dropdownMenu.classList.remove('show');
-    });
-    statsBtnHamburger.addEventListener('click', () => {
-        alert('Открыть статистику');
-        dropdownMenu.classList.remove('show');
-    });
-    hamburgerIcon.addEventListener('click', (event) => {
-        event.stopPropagation();
-        dropdownMenu.classList.toggle('show');
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!document.querySelector('.hamburger-menu').contains(event.target)) {
-            dropdownMenu.classList.remove('show');
-        }
-    });
 
     const historyData = [
         { date: "2025-03-10", rating: 1234, result: "Победа" },
@@ -63,8 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return { date: `2025-03-${day}`, rating, result };
     }
 
+    historyData.push({ date: "2025-03-10", rating: 1234, result: "Победа" });
+    historyData.push({ date: "2025-03-08", rating: 1220, result: "Поражение" });
     for (let i = 0; i < 10; i++) {
         historyData.push(getRandomGame());
+    }
+
+    if (historyData.length === 0) {
+        loadMoreBtn.style.display = "none";
+        hideBtn.style.display = "none";
+        return;
     }
 
     const rowsPerPage = 5;
@@ -98,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         currentPage++;
-        loadMoreBtn.style.display = (currentPage * rowsPerPage < historyData.length) ? "block" : "none";
+        loadMoreBtn.style.display = (historyData.length > rowsPerPage && currentPage * rowsPerPage < historyData.length) ? "block" : "none";
     }
 
     renderRows();
@@ -127,8 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             currentPage = 1;
-            loadMoreBtn.style.display = (currentPage * rowsPerPage < historyData.length) ? "block" : "none";
+            loadMoreBtn.style.display = (historyData.length > rowsPerPage && currentPage * rowsPerPage < historyData.length) ? "block" : "none";
             hideBtn.style.display = "none";
         }, 300);
     });
-});
+}

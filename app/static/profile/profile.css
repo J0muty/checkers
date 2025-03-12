@@ -35,6 +35,11 @@ body {
     backdrop-filter: blur(10px);
     animation: containerEntry 1s ease-out forwards;
 }
+
+.content {
+    flex: 1;
+}
+
 @keyframes containerEntry {
     from {
         opacity: 0;

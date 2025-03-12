@@ -5,50 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль игрока</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="static/profile/profile.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='profile/profile.css') }}">
 </head>
 <body>
     <div class="profile-container">
-        <div class="profile-header">
-            <div class="avatar">
-                <img src="avatar-placeholder.png" alt="Аватар">
-            </div>
-            <div class="player-info">
-                <h1>{{ user }}</h1>
-                <div class="rating">Рейтинг: <span>1234</span></div>
-            </div>
-            <div class="profile-buttons">
-                <button id="friendsBtn">Друзья</button>
-                <button id="topBtn">Топ</button>
-                <button id="statsBtn">Статистика</button>
-            </div>
-            <div class="hamburger-menu">
-                <i class="fa-solid fa-bars"></i>
-                <div class="dropdown-menu">
-                    <button id="friendsBtnHamburger">Друзья</button>
-                    <button id="topBtnHamburger">Топ</button>
-                    <button id="statsBtnHamburger">Статистика</button>
+        <div class="content">
+            <div class="profile-header">
+                <div class="avatar">
+                    <img src="avatar-placeholder.png" alt="Аватар">
+                </div>
+                <div class="player-info">
+                    <h1>{{ user.username }}</h1>
+                    <div class="rating">Рейтинг: <span>1234</span></div>
+                </div>
+                <div class="profile-buttons">
+                    <button id="friendsBtn">Друзья</button>
+                    <button id="topBtn">Топ</button>
+                    <button id="statsBtn">Статистика</button>
+                </div>
+                <div class="hamburger-menu">
+                    <i class="fa-solid fa-bars"></i>
+                    <div class="dropdown-menu">
+                        <button id="friendsBtnHamburger">Друзья</button>
+                        <button id="topBtnHamburger">Топ</button>
+                        <button id="statsBtnHamburger">Статистика</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="history">
-            <h2>История игр</h2>
-            <div class="history-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Дата окончания</th>
-                            <th>Рейтинг</th>
-                            <th>Результат</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                    </tbody>
-                </table>
-            </div>
-            <div class="history-buttons">
-                <button id="loadMoreBtn">Загрузить ещё</button>
-                <button id="hideBtn" style="display: none;">Скрыть</button>
+            <div class="history">
+                <h2>История игр</h2>
+                <div class="history-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Дата окончания</th>
+                                <th>Рейтинг</th>
+                                <th>Результат</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="history-buttons">
+                    <button id="loadMoreBtn">Загрузить ещё</button>
+                    <button id="hideBtn" style="display: none;">Скрыть</button>
+                </div>
             </div>
         </div>
         <div class="footer-buttons">
@@ -56,6 +58,6 @@
             <button id="exitBtn">Выйти</button>
         </div>
     </div>
-    <script src="static/profile/profile.js"></script>
+    <script type="module" src="{{ url_for('static', path='profile/init.js') }}"></script>
 </body>
 </html>

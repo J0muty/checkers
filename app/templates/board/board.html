@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Доска</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', path='board/board.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="timers">
+            <div class="timer-container">
+                <span class="timer-label">Белые</span>
+                <span id="white-timer" class="timer-display">15:00</span>
+            </div>
+            <span class="status" id="status">Ход белых</span>
+            <div class="timer-container">
+                <span class="timer-label">Черные</span>
+                <span id="black-timer" class="timer-display">15:00</span>
+            </div>
+        </div>
+    </div>
+    <div class="board-container">
+        <div id="board-wrapper">
+            <div class="player-info-opponent">
+                <img src="/static/images/opponent_avatar.png" alt="Avatar">
+                <span>Opponent (1200)</span>
+                <span class="player-timer" id="opponent-timer">15:00</span>
+            </div>
+            <canvas id="board"></canvas>
+            <div class="player-info-self">
+                <img src="/static/images/user_avatar.png" alt="Avatar">
+                <span>User (1300)</span>
+                <span class="player-timer" id="self-timer">15:00</span>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar">
+        <h2>Меню</h2>
+        <button id="main-menu-button">Главное меню</button>
+        <button id="give-up-button">Сдаться</button>
+        <button id="give-draw-button">Ничья</button>
+    </div>
+    <div class="moves-sidebar">
+        <h2>Ходы игроков</h2>
+        <div class="moves-container">
+            <ul class="moves-list">
+                <li class="player-move">
+                    <div class="move-content">
+                        <span class="move-player">User</span>
+                        <span class="move-description">A3 - B4</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content registered">
+            <h2 id="game-over-title">Игра окончена</h2>
+            <p id="game-over-message">Результат: Победа</p>
+            <div class="modal-buttons">
+                <button id="main-menu-button-modal">Главное меню</button>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', path='board/board.js') }}"></script>
+</body>
+</html>
