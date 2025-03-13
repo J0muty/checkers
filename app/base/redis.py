@@ -1,6 +1,7 @@
 import json
 import uuid
 import redis.asyncio as aioredis
+from app.engine.game import pieces
 redis_client = aioredis.from_url("redis://127.0.0.1:6380", decode_responses=True)
 active_waiting_connections = {}
 
@@ -27,7 +28,8 @@ async def create_or_join_waiting(username: str):
                 "game_id": game_id,
                 "user1": user1,
                 "user2": username,
-                "status_game": "current"
+                "status_game": "current",
+                "pieces": json.dumps(pieces)
             })
             await redis_client.delete(key)
 

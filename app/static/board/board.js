@@ -27,13 +27,14 @@ window.addEventListener('load', function() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        const sizeOffset = cellSize * 0.3 - cellSize;
         for (let i = 0; i < 8; i++) {
             let x = (i + 0.5) * cellSize;
             ctx.fillText(letters[i], x, -cellSize * 0.3 + cellSize);
         }
         for (let i = 0; i < 8; i++) {
             let x = (i + 0.5) * cellSize;
-            ctx.fillText(letters[i], x, size + cellSize * 0.3 - cellSize);
+            ctx.fillText(letters[i], x, canvas.height + sizeOffset);
         }
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
@@ -44,29 +45,31 @@ window.addEventListener('load', function() {
         ctx.textAlign = "right";
         for (let i = 0; i < 8; i++) {
             let y = i * cellSize + cellSize / 2;
-            ctx.fillText((8 - i).toString(), size - cellSize * 0.1, y);
+            ctx.fillText((8 - i).toString(), canvas.width - cellSize * 0.1, y);
         }
     }
 
-    function drawPieces() {
+    function drawPieces(pieces) {
         const size = canvas.width;
         const cellSize = size / 8;
-        ctx.fillStyle = "#ffffff";
-        let x = 3, y = 2;
-        ctx.beginPath();
-        ctx.arc(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, cellSize * 0.3, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillStyle = "#000000";
-        x = 4; y = 5;
-        ctx.beginPath();
-        ctx.arc(x * cellSize + cellSize / 2, y * cellSize + cellSize / 2, cellSize * 0.3, 0, 2 * Math.PI);
-        ctx.fill();
+
+        pieces.forEach(piece => {
+            let fillColor = piece.color === 1 ? "#ffffff" : "#000000";
+            let cx = piece.x * cellSize + cellSize / 2;
+            let cy = piece.y * cellSize + cellSize / 2;
+            let radius = cellSize * 0.3;
+
+            ctx.fillStyle = fillColor;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.fill();
+        });
     }
 
     function init() {
         adjustCanvas();
         drawBoard();
-        drawPieces();
+        drawPieces(piecesData);
     }
 
     init();

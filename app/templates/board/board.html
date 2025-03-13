@@ -63,6 +63,9 @@
             </div>
         </div>
     </div>
+    <script>
+        const piecesData = JSON.parse('{{ pieces|tojson|safe }}');
+    </script>
     <script src="{{ url_for('static', path='board/board.js') }}"></script>
 </body>
 </html>

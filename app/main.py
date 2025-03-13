@@ -16,6 +16,7 @@ from base.redis import (
     remove_game_in_redis
 )
 from engine.auth import process_login, process_registration
+from engine.game import pieces
 
 app = FastAPI()
 router = APIRouter()
@@ -102,8 +103,19 @@ async def board_game(request: Request, username: str, game_id: str):
         return HTMLResponse("Нет доступа к игре", status_code=403)
     if username != user:
         return HTMLResponse("Нет доступа к игре", status_code=403)
+    pieces_json = game_data.get("pieces")
+    if pieces_json:
+        current_pieces = json.loads(pieces_json)
+    else:
+        from engine.game import pieces
+        current_pieces = pieces
+
     request.session["game_id"] = game_id
-    return templates.TemplateResponse("board/board.html", {"request": request})
+
+    return templates.TemplateResponse("board/board.html", {
+        "request": request,
+        "pieces": current_pieces
+    })
 
 
 @app.post("/game/search")
