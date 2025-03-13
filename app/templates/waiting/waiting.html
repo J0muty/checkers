@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ожидание игры</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='waiting/waiting.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ожидание игры</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='waiting/waiting.css') }}">
 </head>
 <body>
-  <div class="waiting-container">
-    <div class="spinner"></div>
-    <div class="timer">00:00</div>
-    <button id="cancel-button">Отмена поиска</button>
-  </div>
-  <script type="module" src="{{ url_for('static', path='waiting/waiting.js') }}"></script>
+    <div class="waiting-container">
+        <div class="spinner"></div>
+        <div class="timer">00:00</div>
+        <button id="cancel-button">Отмена поиска</button>
+    </div>
+    <script>
+        window.gameKey = "{{ waiting_key }}"
+    </script>
+    <script type="module" src="{{ url_for('static', path='waiting/waiting.js') }}"></script>
 </body>
 </html>

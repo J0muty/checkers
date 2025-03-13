@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('gameKey is not defined');
     }
-
     cancelButton.addEventListener('click', async () => {
         try {
             const response = await fetch('/waiting/cancel', {

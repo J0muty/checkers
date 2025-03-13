@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' }
             });
             const result = await response.json();
-            if(result.redirect){
+            if (result.redirect) {
                 window.location.href = result.redirect;
             } else {
                 window.location.href = '/waiting';

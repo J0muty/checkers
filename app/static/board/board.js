@@ -71,8 +71,16 @@ window.addEventListener('load', function() {
 
     init();
 
-    document.getElementById("give-up-button").addEventListener("click", function() {
-        window.location.href = "/";
+    document.getElementById("give-up-button").addEventListener("click", async function() {
+        try {
+            let response = await fetch("/give_up", {
+                method: "POST"
+            });
+            let data = await response.json();
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Ошибка при сдаче:", error);
+        }
     });
 
     document.getElementById("main-menu-button").addEventListener("click", function() {
