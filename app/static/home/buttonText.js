@@ -1,6 +1,6 @@
 export function updateButtonText() {
     const buttons = document.querySelectorAll('.buttons button');
-    if (window.innerWidth <= 175) {
+    if (window.innerWidth <= 230) {
         buttons.forEach(button => {
             if (button.textContent.includes("Одиночная игра")) {
                 button.textContent = "Одиночная";

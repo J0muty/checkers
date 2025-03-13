@@ -1,14 +1,12 @@
-import uvicorn
-import asyncio
-import json
 import uuid
-from fastapi import FastAPI, Request, HTTPException, APIRouter, WebSocket, WebSocketDisconnect
+import json
+import asyncio
+import uvicorn
+from fastapi import FastAPI, Request, APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
-from sqlalchemy.engine import URL
-from base import postgres
 from core.settings import templates, static_files
-from engine.auth import process_login, process_registration
+from base import postgres
 from base.redis import (
     redis_client,
     create_or_join_waiting,
@@ -17,12 +15,18 @@ from base.redis import (
     notify_game_found,
     remove_game_in_redis
 )
+from engine.auth import process_login, process_registration
 
 app = FastAPI()
 router = APIRouter()
 
 app.mount("/static", static_files, name="static")
 app.add_middleware(SessionMiddleware, secret_key="secretkey")
+
+
+@app.on_event("startup")
+async def startup_event():
+    await postgres.init_db()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -58,13 +62,20 @@ async def profile(request: Request, username: str = None):
     user_profile = await postgres.get_user_by_username(username)
     if user_profile is None:
         return HTMLResponse(content="Пользователь не найден", status_code=404)
-    return templates.TemplateResponse("profile/profile.html", {"request": request, "user": user_profile})
+
+    return templates.TemplateResponse("profile/profile.html", {
+        "request": request,
+        "user": user_profile
+    })
 
 
 @app.get("/waiting", response_class=HTMLResponse)
 async def waiting(request: Request):
     waiting_key = request.session.get("waiting_game_key")
-    return templates.TemplateResponse("waiting/waiting.html", {"request": request, "waiting_key": waiting_key})
+    return templates.TemplateResponse("waiting/waiting.html", {
+        "request": request,
+        "waiting_key": waiting_key
+    })
 
 
 @app.post("/waiting/cancel", response_class=JSONResponse)
@@ -140,13 +151,4 @@ async def give_up(request: Request):
 app.include_router(router)
 
 if __name__ == "__main__":
-    DATABASE_URL = URL.create(
-        "postgresql+asyncpg",
-        username="postgres",
-        password="951753aA.",
-        host="localhost",
-        database="postgres",
-        port=5432
-    )
-    asyncio.run(postgres.async_main(DATABASE_URL))
-    uvicorn.run("main:app", host="127.0.0.1", port=1488)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=1488, reload=True)

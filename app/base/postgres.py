@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.pool import NullPool
 from sqlalchemy import select
 from base.models_postgres import Base, User
+from sqlalchemy.engine import URL
 
 async_session: None | async_sessionmaker[AsyncSession] = None
 
@@ -10,12 +11,19 @@ async_session: None | async_sessionmaker[AsyncSession] = None
 # =============================================================================
 # Инициализация и подключение к базе данных
 # =============================================================================
-async def async_main(url):
+async def init_db():
     global async_session
-    engine = create_async_engine(url, future=True, echo=False, poolclass=NullPool)
+    DATABASE_URL = URL.create(
+        drivername="postgresql+asyncpg",
+        username="postgres",
+        password="951753aA.",
+        host="localhost",
+        port=5432,
+        database="postgres"
+    )
+    engine = create_async_engine(DATABASE_URL, future=True, echo=False, poolclass=NullPool)
     async_session = async_sessionmaker(engine, expire_on_commit=False)
     async with engine.begin() as conn:
-        # Создаем все таблицы, определенные в Base.metadata
         await conn.run_sync(Base.metadata.create_all)
 
 

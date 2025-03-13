@@ -5,20 +5,17 @@
     --accent-hover: #ff5252;
     --text-color: #fff;
 }
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
     font-family: 'Segoe UI', sans-serif;
     background: #1a1a1a;
     color: var(--text-color);
     overflow-x: hidden;
 }
-
 header {
     display: flex;
     justify-content: space-between;
@@ -28,24 +25,20 @@ header {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     height: 80px;
 }
-
 .logo-area {
     display: flex;
     align-items: center;
 }
-
 .logo-area img {
     width: 60px;
     height: 60px;
     margin-right: 15px;
     animation: logoFadeIn 1s ease forwards;
 }
-
 .logo-area h1 {
     font-size: 2rem;
     animation: textFadeIn 1s ease forwards;
 }
-
 header nav a {
     margin-left: 30px;
     text-decoration: none;
@@ -53,21 +46,17 @@ header nav a {
     font-size: 1.1rem;
     transition: color 0.3s ease;
 }
-
 header nav a:hover {
     color: var(--accent);
 }
-
 @keyframes logoFadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes textFadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 main {
     display: flex;
     justify-content: center;
@@ -75,7 +64,6 @@ main {
     height: calc(100vh - 80px);
     padding: 20px;
 }
-
 .menu-container {
     background: var(--secondary-bg);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -85,23 +73,19 @@ main {
     animation: containerFadeIn 0.5s ease forwards;
     max-width: 100%;
 }
-
 @keyframes containerFadeIn {
     from { opacity: 0; transform: translate3d(0, 20px, 0); }
     to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-
 .menu-container h2 {
     font-size: 2rem;
     margin-bottom: 40px;
 }
-
 .buttons {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
-
 .buttons button {
     background: var(--accent);
     border: none;
@@ -117,32 +101,25 @@ main {
     animation: fadeInUp 0.5s forwards;
     text-align: center;
 }
-
 .buttons button:nth-child(1) {
     animation-delay: 0.2s;
 }
-
 .buttons button:nth-child(2) {
     animation-delay: 0.4s;
 }
-
 @keyframes fadeInUp {
     to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-
 .buttons button:hover {
     background: var(--accent-hover);
     transform: scale(1.05);
 }
-
 .mobile-bar {
     display: none;
 }
-
 .mobile-menu {
     display: none;
 }
-
 @media (max-width: 768px) {
     header {
         padding: 15px 20px;
@@ -203,7 +180,6 @@ main {
         text-align: center;
     }
 }
-
 @media (max-width: 480px) {
     header {
         padding: 10px 15px;
@@ -228,15 +204,43 @@ main {
         font-size: 0.9rem;
     }
 }
-
 @media (min-width: 769px) {
     .mobile-menu {
         display: none;
     }
 }
-
 @media (max-width: 350px) {
     .logo-area h1 {
         display: none;
     }
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: #000;
+    width: 60%;
+    max-width: 600px;
+    padding: 190px;
+    border-radius: 8px;
+    position: relative;
+    text-align: center;
+    color: var(--accent);
+}
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--accent);
 }
