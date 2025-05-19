@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Home{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/home/home.css">
+{% endblock %}
+
+{% block content %}
+<div class="home-wrapper">
+    <div class="home-grid">
+        <a class="btn" href="{{ url_for('home') }}">Single Player</a>
+        <a class="btn" href="{{ url_for('home') }}">Multiplayer</a>
+        <a class="btn" href="{{ url_for('home') }}">Friends</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/home/home.js"></script>
+{% endblock %}

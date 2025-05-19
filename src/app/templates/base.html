@@ -2,9 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TheCheckers{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/static/base/base.css">
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
-
+<body class="{% block body_class %}{% endblock %}">
+    <header class="header">
+        <div class="logo">TheCheckers</div>
+        <nav class="nav">
+            <button id="theme-toggle"><i class="fas fa-moon" id="theme-icon"></i></button>
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">© 2025 TheCheckers</footer>
+    <script src="/static/base/base.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

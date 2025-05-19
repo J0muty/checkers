@@ -1,0 +1,91 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --background-color: #F6F8FB;
+    --surface-color: #FFFFFF;
+    --accent-color: #4F8CFF;
+    --button-color: #2464DB;
+    --text-color: #181A20;
+    --secondary-text-color: #7D8193;
+    --font-family: 'Inter', sans-serif;
+    --border-radius: 12px;
+}
+
+body.dark-mode {
+    --background-color: #181A20;
+    --surface-color: #22232B;
+    --button-color: #0057fa;
+    --text-color: #FFFFFF;
+    --secondary-text-color: #A3A6B7;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    transition: background 0.3s, color 0.3s;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--surface-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: background 0.3s, box-shadow 0.3s;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav a:hover {
+    color: var(--accent-color);
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    transition: color 0.3s;
+}
+
+main {
+    padding-top: 60px;
+    padding: 40px 20px;
+    min-height: calc(100vh - 120px);
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: var(--surface-color);
+    color: var(--secondary-text-color);
+}
