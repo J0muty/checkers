@@ -1,4 +1,3 @@
-# src/app/routers/auth_router.py
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from src.settings.settings import templates

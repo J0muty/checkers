@@ -13,7 +13,7 @@
     --border-radius: 12px;
 }
 
-body.dark-mode {
+.dark-mode {
     --background-color: #181A20;
     --surface-color: #22232B;
     --button-color: #0057fa;

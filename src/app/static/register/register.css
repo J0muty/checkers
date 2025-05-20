@@ -1,0 +1,163 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #181A20;
+        --surface: #22232B;
+        --text-primary: #FFFFFF;
+        --text-secondary: #A3A6B7;
+        --button: #0057fa;
+        --accent-start: #4F8CFF;
+        --accent-end: #B94EFF;
+    }
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --background: #F6F8FB;
+        --surface: #FFFFFF;
+        --text-primary: #181A20;
+        --text-secondary: #7D8193;
+        --button: #2464DB;
+        --accent-start: #4F8CFF;
+        --accent-end: #B94EFF;
+    }
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    position: relative;
+    background-color: var(--surface);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+.back-arrow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    z-index: 2;
+}
+
+.back-arrow:hover {
+    color: var(--accent-start);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.input-group.has-toggle input {
+    padding-right: 40px;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    background-color: var(--surface);
+    padding: 0 4px;
+    z-index: 1;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: 0;
+    left: 10px;
+    font-size: 12px;
+    color: var(--accent-start);
+}
+
+.input-group input:focus {
+    border-color: var(--accent-start);
+    outline: none;
+    box-shadow: 0 0 5px var(--accent-start);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.toggle-password svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--text-secondary);
+}
+
+.toggle-password .eye-slash {
+    display: none;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--button);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: filter 0.3s;
+}
+
+button:hover {
+    filter: brightness(0.9);
+}
+
+p {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+}
+
+p a {
+    color: var(--accent-start);
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}

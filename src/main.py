@@ -4,11 +4,12 @@ from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
 from src.app.routers import pages_router, auth_router
 from src.settings.settings import static_files
+from src.base import postgres, redis
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-
-
+    await postgres.init_db()
+    await redis.check_redis_connection()
     yield
 
 app = FastAPI(lifespan=lifespan)
