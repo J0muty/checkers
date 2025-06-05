@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
-from src.app.routers import pages_router, auth_router, profile_router
+from src.app.routers import pages_router, auth_router, profile_router, board_router
 from src.settings.settings import static_files
 from src.base import postgres, redis
 
@@ -17,6 +17,7 @@ app.add_middleware(SessionMiddleware, secret_key="absolutesecretkey")
 app.include_router(pages_router)
 app.include_router(auth_router)
 app.include_router(profile_router)
+app.include_router(board_router)
 app.mount("/static", static_files, name="static")
 
 
