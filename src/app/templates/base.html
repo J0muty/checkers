@@ -17,14 +17,28 @@
     <header class="header">
         <div class="logo">TheCheckers</div>
         <nav class="nav">
-            <button id="theme-toggle"><i class="fas fa-moon" id="theme-icon"></i></button>
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('register') }}">Register</a>
+            <button id="theme-toggle">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+
+            {# Вот здесь проверяем, есть ли в сессии user_id #}
+            {% if request.session.user_id %}
+                {# Если пользователь залогинен, показываем «Профиль» и «Logout» #}
+                <a href="{{ url_for('profile') }}">Профиль</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                {# Если не залогинен — показываем Login и Register #}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+
         </nav>
     </header>
+
     <main>
         {% block content %}{% endblock %}
     </main>
+
     <footer class="footer">© 2025 TheCheckers</footer>
     <script src="/static/base/base.js"></script>
     {% block extra_js %}{% endblock %}

@@ -12,7 +12,12 @@
             <i class="fa-solid fa-arrow-left"></i>
         </a>
         <h1>Регистрация</h1>
-        <form>
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        <form action="/register" method="post">
             <div class="input-group">
                 <input type="text" id="login" name="login" placeholder=" " required>
                 <label for="login">Логин</label>
@@ -30,7 +35,7 @@
                 </span>
             </div>
             <div class="input-group has-toggle">
-                <input type="password" id="confirm-password" name="confirm-password" placeholder=" " required>
+                <input type="password" id="confirm-password" name="confirm_password" placeholder=" " required>
                 <label for="confirm-password">Подтверждение пароля</label>
                 <span class="toggle-password">
                     <svg class="eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
