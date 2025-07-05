@@ -10,8 +10,8 @@ redis_client = redis.Redis(
     decode_responses=True
 )
 
-REDIS_KEY = "board_state"
-
+REDIS_KEY_PREFIX = "board_state"
+USER_BOARD_KEY_PREFIX = "user_board"
 
 async def check_redis_connection():
     print("Проверка подключения к редису...")
@@ -20,19 +20,27 @@ async def check_redis_connection():
         if pong:
             print("✅ Успешное подключение к Redis!")
         else:
-           print("❌ Пинг не прошёл. Redis недоступен.")
-
+            print("❌ Пинг не прошёл. Redis недоступен.")
     except Exception as e:
         print(f"❌ Ошибка подключения к Redis: {e}")
 
-
-async def get_board_state():
-    raw = await redis_client.get(REDIS_KEY)
+async def get_board_state(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}"
+    raw = await redis_client.get(key)
     if not raw:
         board = await create_initial_board()
-        await redis_client.set(REDIS_KEY, json.dumps(board))
+        await redis_client.set(key, json.dumps(board))
         return board
     return json.loads(raw)
 
-async def save_board_state(board):
-    await redis_client.set(REDIS_KEY, json.dumps(board))
+async def save_board_state(board_id: str, board):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}"
+    await redis_client.set(key, json.dumps(board))
+
+async def assign_user_board(username: str, board_id: str):
+    key = f"{USER_BOARD_KEY_PREFIX}:{username}"
+    await redis_client.set(key, board_id)
+
+async def get_user_board(username: str):
+    key = f"{USER_BOARD_KEY_PREFIX}:{username}"
+    return await redis_client.get(key)

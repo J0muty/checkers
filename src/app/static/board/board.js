@@ -7,21 +7,23 @@ let boardState = [];
 let selected = null;
 let possibleMoves = [];
 let turn = 'white';
+let gameOver = false;
+let multiCapture = false;
 
 async function fetchBoard() {
-    boardState = await (await fetch('/api/board')).json();
+    boardState = await (await fetch(`/api/board/${boardId}`)).json();
     renderBoard();
 }
 
 async function fetchMoves(r, c) {
     return await (await fetch(
-        `/api/moves?row=${r}&col=${c}&player=${turn}`
+        `/api/moves/${boardId}?row=${r}&col=${c}&player=${turn}`
     )).json();
 }
 
 async function fetchCaptures(r, c) {
     return await (await fetch(
-        `/api/captures?row=${r}&col=${c}&player=${turn}`
+        `/api/captures/${boardId}?row=${r}&col=${c}&player=${turn}`
     )).json();
 }
 
@@ -35,136 +37,119 @@ function renderBoard() {
             cell.dataset.col = col;
 
             if (row === 0 || row === 9) {
-                cell.classList.add(
-                    'label',
-                    row === 0 ? 'label-top' : 'label-bottom'
-                );
+                cell.classList.add('label', row === 0 ? 'label-top' : 'label-bottom');
                 cell.textContent = letters[col];
             } else if (col === 0 || col === 9) {
-                cell.classList.add(
-                    'label',
-                    col === 0 ? 'label-left' : 'label-right'
-                );
+                cell.classList.add('label', col === 0 ? 'label-left' : 'label-right');
                 cell.textContent = numbers[row];
             } else {
                 const r = row - 1;
                 const c = col - 1;
                 cell.classList.add((r + c) % 2 ? 'dark' : 'light');
 
-                if (
-                    selected &&
-                    selected.row === r &&
-                    selected.col === c
-                ) {
+                if (selected && selected.row === r && selected.col === c) {
                     cell.classList.add('selected');
                 }
-                if (
-                    possibleMoves.some(
-                        m => m[0] === r && m[1] === c
-                    )
-                ) {
+                if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
                     cell.classList.add('highlight');
                 }
 
                 const piece = boardState[r][c];
                 if (piece) {
                     const p = document.createElement('div');
-                    p.classList.add(
-                        'piece',
-                        piece.toLowerCase() === 'w'
-                            ? 'white'
-                            : 'black'
-                    );
-                    if (piece === piece.toUpperCase()) {
-                        p.classList.add('king');
-                    }
+                    p.classList.add('piece', piece.toLowerCase() === 'w' ? 'white' : 'black');
+                    if (piece === piece.toUpperCase()) p.classList.add('king');
                     cell.appendChild(p);
                 }
+
+                cell.addEventListener('click', onCellClick);
             }
 
-            cell.addEventListener('click', onCellClick);
             boardElement.appendChild(cell);
         }
     }
 }
 
 async function onCellClick(e) {
+    if (gameOver) return;
+
     const row = +e.currentTarget.dataset.row;
     const col = +e.currentTarget.dataset.col;
-    if (
-        row === 0 ||
-        row === 9 ||
-        col === 0 ||
-        col === 9
-    )
-        return;
+    if (row === 0 || row === 9 || col === 0 || col === 9) return;
 
     const r = row - 1;
     const c = col - 1;
+
+    if (multiCapture && !possibleMoves.some(m => m[0] === r && m[1] === c)) {
+        return;
+    }
+
     const piece = boardState[r][c];
 
     if (!selected) {
-        if (
-            !piece ||
-            (piece.toLowerCase() === 'w'
-                ? 'white'
-                : 'black') !== turn
-        )
-            return;
+        if (!piece || (piece.toLowerCase() === 'w' ? 'white' : 'black') !== turn) return;
         const caps = await fetchCaptures(r, c);
         if (caps.length) {
-            selected = { row: r, col: c };
             possibleMoves = caps;
+            selected = { row: r, col: c, isCapture: true };
         } else {
             const moves = await fetchMoves(r, c);
             if (!moves.length) return;
-            selected = { row: r, col: c };
             possibleMoves = moves;
+            selected = { row: r, col: c, isCapture: false };
         }
         renderBoard();
         return;
     }
 
-    if (
-        possibleMoves.some(
-            m => m[0] === r && m[1] === c
-        )
-    ) {
-        const prev = { ...selected };
-        const res = await fetch('/api/move', {
+    if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
+        const prev = selected;
+        const res = await fetch(`/api/move/${boardId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                start: [selected.row, selected.col],
-                end: [r, c],
+                start: [prev.row, prev.col],
+                end:   [r, c],
                 player: turn
             })
         });
-        if (res.ok) {
-            boardState = await res.json();
-            addToHistory(prev, { row: r, col: c });
-            const wasCapture =
-                Math.abs(r - prev.row) > 1;
-            if (wasCapture) {
-                const nextCaps = await fetchCaptures(
-                    r,
-                    c
-                );
-                if (nextCaps.length) {
-                    selected = { row: r, col: c };
-                    possibleMoves = nextCaps;
-                    renderBoard();
-                    return;
-                }
-            }
-            turn = turn === 'white' ? 'black' : 'white';
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.detail || 'Неверный ход');
+            return;
         }
+
+        boardState = data.board;
+        addToHistory(prev, { row: r, col: c });
+
+        if (prev.isCapture) {
+            const nextCaps = await fetchCaptures(r, c);
+            if (nextCaps.length) {
+                selected = { row: r, col: c, isCapture: true };
+                possibleMoves = nextCaps;
+                multiCapture = true;
+                renderBoard();
+                return;
+            }
+        }
+        multiCapture = false;
+
+        if (data.status) {
+            if (data.status === 'white_win')      alert('Белые победили!');
+            else if (data.status === 'black_win') alert('Чёрные победили!');
+            else if (data.status === 'draw')      alert('Ничья!');
+            gameOver = true;
+            window.location.href = '/';
+            return;
+        }
+
+        turn = turn === 'white' ? 'black' : 'white';
     }
 
-    selected = null;
-    possibleMoves = [];
+    if (!multiCapture) {
+        selected = null;
+        possibleMoves = [];
+    }
     renderBoard();
 }
 
@@ -179,4 +164,3 @@ function coord(p) {
 }
 
 fetchBoard();
-

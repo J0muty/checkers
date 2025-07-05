@@ -166,32 +166,25 @@ async def validate_move(
     if not piece or owner(piece) != player or not is_empty(board, end):
         raise ValueError('Неверный ход')
     forced = any_capture(board, player)
-    possible = (
+    captures = piece_capture_moves(board, start, player)
+    if forced and not captures:
+        raise ValueError('Обязательное взятие')
+    possible = captures if captures else (
         man_moves(board, start, player)
         if piece.islower()
         else king_moves(board, start, player)
     )
-    if forced and not (
-        (piece.islower() and abs(end[0] - start[0]) == 2)
-        or (piece.isupper() and abs(end[0] - start[0]) > 1)
-    ):
-        raise ValueError('Обязательное взятие')
     if end not in possible:
         raise ValueError('Неверный ход')
     new_board = deepcopy(board)
     new_board[start[0]][start[1]] = None
     new_board[end[0]][end[1]] = piece
-    if abs(end[0] - start[0]) == 2 or (
-        piece.isupper() and abs(end[0] - start[0]) > 1
-    ):
+    if captures and end in captures:
         dr = sign(end[0] - start[0])
         dc = sign(end[1] - start[1])
         i, j = start[0] + dr, start[1] + dc
         while (i, j) != (end[0], end[1]):
-            if (
-                get_piece(board, (i, j))
-                and is_opponent(get_piece(board, (i, j)), player)
-            ):
+            if get_piece(board, (i, j)) and is_opponent(get_piece(board, (i, j)), player):
                 new_board[i][j] = None
                 break
             i += dr
@@ -201,3 +194,42 @@ async def validate_move(
     if piece == 'b' and end[0] == 7:
         new_board[end[0]][end[1]] = 'B'
     return new_board
+
+
+def game_status(board: Board) -> Optional[str]:
+    white_has_pieces = False
+    black_has_pieces = False
+    white_can_move = False
+    black_can_move = False
+    for r in range(8):
+        for c in range(8):
+            p = board[r][c]
+            if not p:
+                continue
+            pl = 'white' if p.lower() == 'w' else 'black'
+            if pl == 'white':
+                white_has_pieces = True
+            else:
+                black_has_pieces = True
+            moves = (
+                man_moves(board, (r, c), pl)
+                if p.islower()
+                else king_moves(board, (r, c), pl)
+            )
+            caps = piece_capture_moves(board, (r, c), pl)
+            if moves or caps:
+                if pl == 'white':
+                    white_can_move = True
+                else:
+                    black_can_move = True
+    if not black_has_pieces or not black_can_move:
+        return "white_win"
+    if not white_has_pieces or not white_can_move:
+        return "black_win"
+    only_kings = all(
+        p is None or p.isupper()
+        for row in board for p in row
+    )
+    if only_kings and not any_capture(board, 'white') and not any_capture(board, 'black'):
+        return "draw"
+    return None
