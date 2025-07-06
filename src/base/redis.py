@@ -1,7 +1,7 @@
 import json
 import redis.asyncio as redis
 import time
-from src.app.game.game_logic import create_initial_board
+from src.app.game.game_logic import create_initial_board, validate_move
 from src.settings.config import redis_host, redis_port, redis_db
 
 redis_client = redis.Redis(
@@ -95,3 +95,21 @@ async def apply_move_timer(board_id: str, player: str):
     key = f"{REDIS_KEY_PREFIX}:{board_id}:{TIMER_KEY_PREFIX}"
     await redis_client.set(key, json.dumps(timers))
     return timers
+
+async def get_board_state_at(board_id: str, index: int):
+    history = await get_history(board_id)
+    if index >= len(history):
+        return await get_board_state(board_id)
+
+    board = await create_initial_board()
+    player = "white"
+    for move in history[:index]:
+        try:
+            start, end = move.split("->")
+            start_pos = (8 - int(start[1]), ord(start[0]) - 65)
+            end_pos = (8 - int(end[1]), ord(end[0]) - 65)
+        except Exception:
+            continue
+        board = await validate_move(board, start_pos, end_pos, player)
+        player = "black" if player == "white" else "white"
+    return board

@@ -4,6 +4,7 @@ const timer1 = document.getElementById('timer1');
 const timer2 = document.getElementById('timer2');
 const player1 = document.querySelector('.player1');
 const player2 = document.querySelector('.player2');
+const returnButton = document.getElementById('returnButton');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 
@@ -16,6 +17,7 @@ let timerInterval = null;
 let turn = 'white';
 let gameOver = false;
 let multiCapture = false;
+let viewingHistory = false;
 
 async function fetchBoard() {
     const data = await (await fetch(`/api/board/${boardId}`)).json();
@@ -24,11 +26,15 @@ async function fetchBoard() {
     timerStart = Date.now();
     turn = data.timers.turn;
     historyList.innerHTML = '';
-    data.history.forEach(m => {
+    data.history.forEach((m, i) => {
         const li = document.createElement('li');
         li.textContent = m;
+        li.dataset.index = i + 1;
+        li.addEventListener('click', onHistoryClick);
         historyList.appendChild(li);
     });
+    viewingHistory = false;
+    returnButton.style.display = 'none';
     setActivePlayer(turn);
     startTimers();
     renderBoard();
@@ -90,7 +96,7 @@ function renderBoard() {
 }
 
 async function onCellClick(e) {
-    if (gameOver) return;
+    if (gameOver || viewingHistory) return;
 
     const row = +e.currentTarget.dataset.row;
     const col = +e.currentTarget.dataset.col;
@@ -177,11 +183,23 @@ async function onCellClick(e) {
 
 function updateHistory(history) {
     historyList.innerHTML = '';
-    history.forEach(m => {
+    history.forEach((m, i) => {
         const li = document.createElement('li');
         li.textContent = m;
+        li.dataset.index = i + 1;
+        li.addEventListener('click', onHistoryClick);
         historyList.appendChild(li);
     });
+}
+
+async function onHistoryClick(e) {
+    const idx = parseInt(e.currentTarget.dataset.index);
+    const data = await (await fetch(`/api/snapshot/${boardId}/${idx}`)).json();
+    boardState = data;
+    clearInterval(timerInterval);
+    viewingHistory = true;
+    returnButton.style.display = 'block';
+    renderBoard();
 }
 
 function coord(p) {
@@ -216,3 +234,7 @@ function startTimers() {
 }
 
 fetchBoard();
+
+returnButton.addEventListener('click', () => {
+    fetchBoard();
+});

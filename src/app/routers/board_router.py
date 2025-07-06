@@ -13,6 +13,7 @@ from src.base.redis import (
     append_history,
     get_current_timers,
     apply_move_timer,
+    get_board_state_at,
 )
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
 
@@ -118,3 +119,8 @@ async def api_make_move(board_id: str, req: MoveRequest):
         history=history,
         timers=current_timers,
     )
+
+@board_router.get("/api/snapshot/{board_id}/{index}", response_model=Board)
+async def api_board_snapshot(board_id: str, index: int):
+    board = await get_board_state_at(board_id, index)
+    return board
