@@ -18,6 +18,74 @@ let turn = 'white';
 let gameOver = false;
 let multiCapture = false;
 let viewingHistory = false;
+let forcedPieces = [];
+
+function withinBounds(r, c) {
+    return r >= 0 && r < 8 && c >= 0 && c < 8;
+}
+
+function pieceOwner(piece) {
+    return piece.toLowerCase() === 'w' ? 'white' : 'black';
+}
+
+function isOpponent(piece, player) {
+    return pieceOwner(piece) !== player;
+}
+
+function pieceCaptureMovesLocal(board, r, c, player) {
+    const piece = board[r][c];
+    if (!piece || pieceOwner(piece) !== player) return [];
+    const caps = [];
+    if (piece === piece.toLowerCase()) {
+        const dirs = [[-2,-2],[-2,2],[2,-2],[2,2]];
+        for (const [dr, dc] of dirs) {
+            const mr = r + dr/2, mc = c + dc/2;
+            const nr = r + dr, nc = c + dc;
+            if (withinBounds(nr, nc) && board[nr][nc] === null &&
+                board[mr][mc] && isOpponent(board[mr][mc], player)) {
+                caps.push([nr, nc]);
+            }
+        }
+    } else {
+        const dirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
+        for (const [dr, dc] of dirs) {
+            let i = r + dr, j = c + dc;
+            while (withinBounds(i, j) && board[i][j] === null) {
+                i += dr; j += dc;
+            }
+            if (withinBounds(i, j) && board[i][j] && isOpponent(board[i][j], player)) {
+                let i2 = i + dr, j2 = j + dc;
+                while (withinBounds(i2, j2)) {
+                    if (board[i2][j2] === null) {
+                        caps.push([i2, j2]);
+                    } else {
+                        break;
+                    }
+                    i2 += dr; j2 += dc;
+                }
+            }
+        }
+    }
+    return caps;
+}
+
+function computeForcedPieces() {
+    forcedPieces = [];
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const piece = boardState[r][c];
+            if (!piece || pieceOwner(piece) !== turn) continue;
+            const caps = pieceCaptureMovesLocal(boardState, r, c, turn);
+            if (caps.length) {
+                forcedPieces.push({row: r, col: c, moves: caps});
+            }
+        }
+    }
+    if (forcedPieces.length === 1) {
+        selected = { row: forcedPieces[0].row, col: forcedPieces[0].col, isCapture: true };
+        possibleMoves = forcedPieces[0].moves;
+    }
+}
 
 async function fetchBoard() {
     const data = await (await fetch(`/api/board/${boardId}`)).json();
@@ -37,6 +105,7 @@ async function fetchBoard() {
     returnButton.style.display = 'none';
     setActivePlayer(turn);
     startTimers();
+    computeForcedPieces();
     renderBoard();
 }
 
@@ -78,6 +147,9 @@ function renderBoard() {
                 if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
                     cell.classList.add('highlight');
                 }
+                if (forcedPieces.some(p => p.row === r && p.col === c)) {
+                    cell.classList.add('forced');
+                }
 
                 const piece = boardState[r][c];
                 if (piece) {
@@ -112,6 +184,9 @@ async function onCellClick(e) {
     const piece = boardState[r][c];
 
     if (!selected) {
+        if (forcedPieces.length && !forcedPieces.some(p => p.row === r && p.col === c)) {
+            return;
+        }
         if (!piece || (piece.toLowerCase() === 'w' ? 'white' : 'black') !== turn) return;
         const caps = await fetchCaptures(r, c);
         if (caps.length) {
@@ -177,6 +252,7 @@ async function onCellClick(e) {
     if (!multiCapture) {
         selected = null;
         possibleMoves = [];
+        computeForcedPieces();
     }
     renderBoard();
 }
