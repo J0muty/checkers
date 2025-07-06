@@ -9,6 +9,10 @@ from src.base.redis import (
     get_board_state,
     save_board_state,
     assign_user_board,
+    get_history,
+    append_history,
+    get_current_timers,
+    apply_move_timer,
 )
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
 
@@ -24,9 +28,23 @@ class MoveRequest(BaseModel):
     player: str
 
 
+class Timers(BaseModel):
+    white: float
+    black: float
+    turn: str
+
+
+class BoardState(BaseModel):
+    board: Board
+    history: List[str]
+    timers: Timers
+
+
 class MoveResult(BaseModel):
     board: Board
     status: Optional[str]
+    history: List[str]
+    timers: Timers
 
 
 @board_router.get("/board", name="board")
@@ -46,9 +64,12 @@ async def board_page(request: Request, board_id: str):
     )
 
 
-@board_router.get("/api/board/{board_id}", response_model=Board)
+@board_router.get("/api/board/{board_id}", response_model=BoardState)
 async def api_get_board(board_id: str):
-    return await get_board_state(board_id)
+    board = await get_board_state(board_id)
+    history = await get_history(board_id)
+    timers = await get_current_timers(board_id)
+    return BoardState(board=board, history=history, timers=timers)
 
 
 @board_router.get("/api/moves/{board_id}", response_model=List[Point])
@@ -79,5 +100,21 @@ async def api_make_move(board_id: str, req: MoveRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     await save_board_state(board_id, new_board)
-    status = game_status(new_board)
-    return MoveResult(board=new_board, status=status)
+    move_notation = f"{chr(req.start[1] + 65)}{8 - req.start[0]}->{chr(req.end[1] + 65)}{8 - req.end[0]}"
+    await append_history(board_id, move_notation)
+
+    timers = await apply_move_timer(board_id, req.player)
+    if timers[req.player] <= 0:
+        status = "black_win" if req.player == "white" else "white_win"
+    else:
+        status = game_status(new_board)
+
+    history = await get_history(board_id)
+    current_timers = await get_current_timers(board_id)
+
+    return MoveResult(
+        board=new_board,
+        status=status,
+        history=history,
+        timers=current_timers,
+    )

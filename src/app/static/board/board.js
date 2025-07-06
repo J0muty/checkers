@@ -1,17 +1,36 @@
 const boardElement = document.getElementById('board');
 const historyList = document.getElementById('historyList');
+const timer1 = document.getElementById('timer1');
+const timer2 = document.getElementById('timer2');
+const player1 = document.querySelector('.player1');
+const player2 = document.querySelector('.player2');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 
 let boardState = [];
 let selected = null;
 let possibleMoves = [];
+let timers = {white: 600, black: 600, turn: 'white'};
+let timerStart = Date.now();
+let timerInterval = null;
 let turn = 'white';
 let gameOver = false;
 let multiCapture = false;
 
 async function fetchBoard() {
-    boardState = await (await fetch(`/api/board/${boardId}`)).json();
+    const data = await (await fetch(`/api/board/${boardId}`)).json();
+    boardState = data.board;
+    timers = data.timers;
+    timerStart = Date.now();
+    turn = data.timers.turn;
+    historyList.innerHTML = '';
+    data.history.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m;
+        historyList.appendChild(li);
+    });
+    setActivePlayer(turn);
+    startTimers();
     renderBoard();
 }
 
@@ -120,7 +139,12 @@ async function onCellClick(e) {
         }
 
         boardState = data.board;
-        addToHistory(prev, { row: r, col: c });
+        timers = data.timers;
+        timerStart = Date.now();
+        turn = data.timers.turn;
+        updateHistory(data.history);
+        setActivePlayer(turn);
+        startTimers();
 
         if (prev.isCapture) {
             const nextCaps = await fetchCaptures(r, c);
@@ -142,8 +166,6 @@ async function onCellClick(e) {
             window.location.href = '/';
             return;
         }
-
-        turn = turn === 'white' ? 'black' : 'white';
     }
 
     if (!multiCapture) {
@@ -153,14 +175,44 @@ async function onCellClick(e) {
     renderBoard();
 }
 
-function addToHistory(s, e) {
-    const li = document.createElement('li');
-    li.textContent = `${coord(s)} → ${coord(e)}`;
-    historyList.appendChild(li);
+function updateHistory(history) {
+    historyList.innerHTML = '';
+    history.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m;
+        historyList.appendChild(li);
+    });
 }
 
 function coord(p) {
     return 'ABCDEFGH'[p.col] + (8 - p.row);
+}
+
+function setActivePlayer(p) {
+    player1.classList.toggle('active', p === 'white');
+    player2.classList.toggle('active', p === 'black');
+}
+
+function formatTime(t) {
+    const m = Math.floor(t / 60).toString().padStart(2, '0');
+    const s = Math.floor(t % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function updateTimerDisplay() {
+    const elapsed = (Date.now() - timerStart) / 1000;
+    let w = timers.white;
+    let b = timers.black;
+    if (timers.turn === 'white') w = Math.max(0, w - elapsed);
+    else b = Math.max(0, b - elapsed);
+    timer1.textContent = formatTime(w);
+    timer2.textContent = formatTime(b);
+}
+
+function startTimers() {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(updateTimerDisplay, 1000);
 }
 
 fetchBoard();

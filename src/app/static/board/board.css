@@ -87,7 +87,6 @@ body {
     font-size: calc(var(--font-base) * 1.1);
     font-weight: 600;
     color: var(--text-color);
-    visibility: hidden;
 }
 
 .history-container {
