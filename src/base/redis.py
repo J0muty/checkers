@@ -1,6 +1,7 @@
 import json
 import redis.asyncio as redis
 import time
+import logging
 from src.app.game.game_logic import create_initial_board, validate_move
 from src.settings.config import redis_host, redis_port, redis_db
 
@@ -16,6 +17,8 @@ USER_BOARD_KEY_PREFIX = "user_board"
 HISTORY_KEY_PREFIX = "history"
 TIMER_KEY_PREFIX = "timer"
 DEFAULT_TIME = 600
+
+logger = logging.getLogger(__name__)
 
 async def check_redis_connection():
     print("Проверка подключения к редису...")
@@ -108,18 +111,28 @@ async def apply_same_turn_timer(board_id: str, player: str):
 
 async def get_board_state_at(board_id: str, index: int):
     history = await get_history(board_id)
+    logger.info("Rebuilding board %s at step %d", board_id, index)
     if index >= len(history):
+        logger.info("Requested index %d beyond history length %d", index, len(history))
         return await get_board_state(board_id)
 
     board = await create_initial_board()
     player = "white"
-    for move in history[:index]:
+    for step, move in enumerate(history[:index], start=1):
         try:
             start, end = move.split("->")
             start_pos = (8 - int(start[1]), ord(start[0]) - 65)
             end_pos = (8 - int(end[1]), ord(end[0]) - 65)
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to parse move '%s' at step %d: %s", move, step, e)
             continue
-        board = await validate_move(board, start_pos, end_pos, player)
+        logger.debug(
+            "Step %d by %s: %s -> %s", step, player, start_pos, end_pos
+        )
+        try:
+            board = await validate_move(board, start_pos, end_pos, player)
+        except ValueError as e:
+            logger.exception("Invalid move at step %d: %s", step, e)
+            raise
         player = "black" if player == "white" else "white"
     return board

@@ -110,6 +110,17 @@ body {
     border: 1px solid #E1E3E8;
     border-radius: var(--border-radius);
     background-color: #F6F8FB;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+.history-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.history-list {
+    list-style: none;
 }
 
 .history-list li {
