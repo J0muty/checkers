@@ -13,6 +13,7 @@ from src.base.redis import (
     append_history,
     get_current_timers,
     apply_move_timer,
+    apply_same_turn_timer,
     get_board_state_at,
 )
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
@@ -104,7 +105,15 @@ async def api_make_move(board_id: str, req: MoveRequest):
     move_notation = f"{chr(req.start[1] + 65)}{8 - req.start[0]}->{chr(req.end[1] + 65)}{8 - req.end[0]}"
     await append_history(board_id, move_notation)
 
-    timers = await apply_move_timer(board_id, req.player)
+    was_capture = req.end in piece_capture_moves(board, req.start, req.player)
+    more_captures = False
+    if was_capture:
+        more_captures = bool(piece_capture_moves(new_board, req.end, req.player))
+
+    if was_capture and more_captures:
+        timers = await apply_same_turn_timer(board_id, req.player)
+    else:
+        timers = await apply_move_timer(board_id, req.player)
     if timers[req.player] <= 0:
         status = "black_win" if req.player == "white" else "white_win"
     else:

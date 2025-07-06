@@ -96,6 +96,16 @@ async def apply_move_timer(board_id: str, player: str):
     await redis_client.set(key, json.dumps(timers))
     return timers
 
+async def apply_same_turn_timer(board_id: str, player: str):
+    timers = await _read_timers(board_id)
+    now = time.time()
+    elapsed = now - timers["last_ts"]
+    timers[player] = max(0, timers[player] - elapsed)
+    timers["last_ts"] = now
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{TIMER_KEY_PREFIX}"
+    await redis_client.set(key, json.dumps(timers))
+    return timers
+
 async def get_board_state_at(board_id: str, index: int):
     history = await get_history(board_id)
     if index >= len(history):
