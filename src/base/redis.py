@@ -21,6 +21,7 @@ PLAYERS_KEY = "players"
 DRAW_OFFER_KEY_PREFIX = "draw_offer"
 DEFAULT_TIME = 600
 WAITING_KEY = "waiting_user"
+WAITING_TIME_PREFIX = "waiting_time"
 
 logger = logging.getLogger(__name__)
 
@@ -155,11 +156,13 @@ async def add_to_waiting(username: str):
     if waiting and waiting != username:
         board_id = str(uuid.uuid4())
         await redis_client.delete(WAITING_KEY)
+        await redis_client.delete(f"{WAITING_TIME_PREFIX}:{waiting}")
         await assign_user_board(waiting, board_id)
         await assign_user_board(username, board_id)
         await set_board_players(board_id, {"white": waiting, "black": username})
         return board_id, "black"
     await redis_client.set(WAITING_KEY, username)
+    await redis_client.set(f"{WAITING_TIME_PREFIX}:{username}", time.time())
     return None, None
 
 async def check_waiting(username: str):
@@ -173,10 +176,16 @@ async def check_waiting(username: str):
             await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
     return None, None
 
+async def get_waiting_time(username: str):
+    key = f"{WAITING_TIME_PREFIX}:{username}"
+    ts = await redis_client.get(key)
+    return float(ts) if ts else None
+
 async def cancel_waiting(username: str):
     waiting = await redis_client.get(WAITING_KEY)
     if waiting == username:
         await redis_client.delete(WAITING_KEY)
+        await redis_client.delete(f"{WAITING_TIME_PREFIX}:{username}")
     await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
 
 

@@ -1,5 +1,74 @@
-// Placeholder for home-specific JavaScript
-// Add functionality for home page buttons or other interactions here
+const statusBox = document.getElementById('statusBox');
+const timerEl = document.getElementById('statusTimer');
+const returnBtn = document.getElementById('statusReturn');
+const leaveBtn = document.getElementById('statusLeave');
+const modal = document.getElementById('leaveModal');
+const leaveYes = document.getElementById('leaveYes');
+const leaveNo = document.getElementById('leaveNo');
+
+let timerInterval = null;
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function startInterval(fn) {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(fn, 1000);
+    fn();
+}
+
+async function updateStatus() {
+    const res = await fetch('/api/user_status');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.board_id) {
+        statusBox.style.display = 'flex';
+        returnBtn.onclick = () => {
+            window.location.href = `/board/${data.board_id}?player=${userId}&color=${data.color}`;
+        };
+        leaveBtn.onclick = () => {
+            modal.classList.add('active');
+        };
+        leaveYes.onclick = async () => {
+            modal.classList.remove('active');
+            await fetch(`/api/resign/${data.board_id}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({player: data.color})
+            });
+            updateStatus();
+        };
+        leaveNo.onclick = () => modal.classList.remove('active');
+
+        startInterval(async () => {
+            const tRes = await fetch(`/api/timers/${data.board_id}`);
+            if (!tRes.ok) return;
+            const t = await tRes.json();
+            timerEl.textContent = formatTime(t[data.color]);
+        });
+    } else if (data.waiting_since) {
+        statusBox.style.display = 'flex';
+        returnBtn.onclick = () => {
+            window.location.href = '/waiting';
+        };
+        leaveBtn.onclick = async () => {
+            await fetch('/api/cancel_game', {method: 'POST'});
+            updateStatus();
+        };
+        startInterval(() => {
+            const sec = Math.floor((Date.now() - data.waiting_since * 1000) / 1000);
+            timerEl.textContent = formatTime(sec);
+        });
+    } else {
+        statusBox.style.display = 'none';
+        clearInterval(timerInterval);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Future home-specific scripts can be added here
+    updateStatus();
 });

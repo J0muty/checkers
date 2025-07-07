@@ -6,7 +6,6 @@ let ws = null;
 
 function cancelSearch() {
     navigator.sendBeacon('/api/cancel_game');
-    localStorage.removeItem('waitingStart');
 }
 
 
@@ -16,11 +15,13 @@ function formatTime(s) {
     return `${m}:${sec}`;
 }
 
-function startTimer() {
-    const start = Number(localStorage.getItem('waitingStart')) || Date.now();
-    localStorage.setItem('waitingStart', start);
+async function startTimer() {
+const res = await fetch('/api/user_status');
+    const data = await res.json();
+    const start = data.waiting_since ? data.waiting_since * 1000 : Date.now();
     seconds = Math.floor((Date.now() - start) / 1000);
     timerEl.textContent = formatTime(seconds);
+    clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         seconds += 1;
         timerEl.textContent = formatTime(seconds);
@@ -47,7 +48,6 @@ function setupWebSocket() {
 
 function cleanupAndGo(boardId, color) {
     window.removeEventListener('beforeunload', cancelSearch);
-    localStorage.removeItem('waitingStart');
     clearInterval(timerInterval);
     window.location.href = `/board/${boardId}?player=${userId}&color=${color}`;
 }
@@ -58,17 +58,8 @@ async function joinQueue() {
     if (data.board_id) {
         cleanupAndGo(data.board_id, data.color);
     } else {
-        const check = await fetch('/api/check_game');
-        const chData = await check.json();
-        if (chData.board_id) {
-            cleanupAndGo(chData.board_id, chData.color);
-        }
+        await startTimer();
     }
-}
-
-async function joinQueue() {
-    await fetch('/api/search_game', {method: 'POST'});
-    poll();
 }
 
 window.addEventListener('beforeunload', cancelSearch);
@@ -76,11 +67,9 @@ window.addEventListener('beforeunload', cancelSearch);
 cancelBtn.addEventListener('click', async () => {
     await fetch('/api/cancel_game', {method: 'POST'});
     window.removeEventListener('beforeunload', cancelSearch);
-    localStorage.removeItem('waitingStart');
     clearInterval(timerInterval);
     window.location.href = '/';
 });
 
-startTimer();
 setupWebSocket();
 joinQueue();

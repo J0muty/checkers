@@ -91,6 +91,9 @@ async def api_get_board(board_id: str):
     timers = await get_current_timers(board_id)
     return BoardState(board=board, history=history, timers=timers)
 
+@board_router.get("/api/timers/{board_id}", response_model=Timers)
+async def api_get_timers(board_id: str):
+    return await get_current_timers(board_id)
 
 @board_router.get("/api/moves/{board_id}", response_model=List[Point])
 async def api_get_moves(board_id: str, row: int, col: int, player: str):
@@ -206,7 +209,7 @@ async def api_draw_offer(board_id: str, action: PlayerAction):
 async def api_draw_response(board_id: str, resp: DrawResponse):
     offer = await get_draw_offer(board_id)
     await clear_draw_offer(board_id)
-    if resp.accept and offer:
+    if resp.accept and offer and resp.player != offer:
         board = await get_board_state(board_id)
         players = await get_board_players(board_id)
         if players:

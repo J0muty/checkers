@@ -6,6 +6,7 @@ from src.base.redis import (
     check_waiting,
     cancel_waiting,
     get_board_players,
+    get_waiting_time,
 )
 from src.app.routers.ws_router import waiting_manager
 import json
@@ -49,6 +50,18 @@ async def api_check_game(request: Request):
     board_id, color = await check_waiting(str(user_id))
     return JSONResponse({"board_id": board_id, "color": color})
 
+@waiting_router.get("/api/user_status")
+async def api_user_status(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401)
+    board_id, color = await check_waiting(str(user_id))
+    waiting_since = await get_waiting_time(str(user_id))
+    return JSONResponse({
+        "board_id": board_id,
+        "color": color,
+        "waiting_since": waiting_since,
+    })
 
 @waiting_router.post("/api/cancel_game")
 async def api_cancel_game(request: Request):

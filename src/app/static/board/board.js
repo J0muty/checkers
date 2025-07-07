@@ -393,7 +393,9 @@ function setupWebSocket() {
     ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
         if (data.type === 'draw_offer') {
-            showModal(drawOfferModal);
+            if (data.from !== myColor) {
+                showModal(drawOfferModal);
+            }
         } else if (data.type === 'draw_declined') {
             alert('Предложение ничьи отклонено');
         } else {
