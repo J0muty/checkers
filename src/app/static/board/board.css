@@ -132,6 +132,9 @@ body {
     transition: background 0.2s;
 }
 
+.history-list li.active-history {
+    background-color: #e0f0ff;
+}
 
 .history-list li:hover {
     background-color: #FFFFFF;

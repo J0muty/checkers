@@ -19,6 +19,7 @@ let gameOver = false;
 let multiCapture = false;
 let viewingHistory = false;
 let forcedPieces = [];
+let viewedMoveIndex = 0;
 
 function withinBounds(r, c) {
     return r >= 0 && r < 8 && c >= 0 && c < 8;
@@ -93,14 +94,8 @@ async function fetchBoard() {
     timers = data.timers;
     timerStart = Date.now();
     turn = data.timers.turn;
-    historyList.innerHTML = '';
-    data.history.forEach((m, i) => {
-        const li = document.createElement('li');
-        li.textContent = m;
-        li.dataset.index = i + 1;
-        li.addEventListener('click', onHistoryClick);
-        historyList.appendChild(li);
-    });
+    viewedMoveIndex = data.history.length;
+    updateHistory(data.history);
     viewingHistory = false;
     returnButton.style.display = 'none';
     setActivePlayer(turn);
@@ -223,6 +218,7 @@ async function onCellClick(e) {
         timers = data.timers;
         timerStart = Date.now();
         turn = data.timers.turn;
+        viewedMoveIndex = data.history.length;
         updateHistory(data.history);
         setActivePlayer(turn);
         startTimers();
@@ -264,16 +260,31 @@ function updateHistory(history) {
         li.textContent = m;
         li.dataset.index = i + 1;
         li.addEventListener('click', onHistoryClick);
+        if (viewedMoveIndex === i + 1) {
+            li.classList.add('active-history');
+        }
         historyList.appendChild(li);
+    });
+}
+
+function highlightHistoryItem(index) {
+    document.querySelectorAll('.history-list li').forEach(li => {
+        li.classList.toggle('active-history', parseInt(li.dataset.index) === index);
     });
 }
 
 async function onHistoryClick(e) {
     const idx = parseInt(e.currentTarget.dataset.index);
+    if (idx === historyList.childElementCount) {
+        fetchBoard();
+        return;
+    }
     const data = await (await fetch(`/api/snapshot/${boardId}/${idx}`)).json();
     boardState = data;
     clearInterval(timerInterval);
     viewingHistory = true;
+    viewedMoveIndex = idx;
+    highlightHistoryItem(idx);
     returnButton.style.display = 'block';
     renderBoard();
 }
