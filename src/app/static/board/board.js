@@ -21,6 +21,10 @@ let viewingHistory = false;
 let forcedPieces = [];
 let viewedMoveIndex = 0;
 
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function withinBounds(r, c) {
     return r >= 0 && r < 8 && c >= 0 && c < 8;
 }
@@ -82,9 +86,21 @@ function computeForcedPieces() {
             }
         }
     }
-    if (forcedPieces.length === 1) {
+    if (forcedPieces.length === 1 && forcedPieces[0].moves.length > 1) {
         selected = { row: forcedPieces[0].row, col: forcedPieces[0].col, isCapture: true };
         possibleMoves = forcedPieces[0].moves;
+    }
+}
+
+async function autoMoveIfSingle() {
+    if (viewingHistory || gameOver) return;
+    if (forcedPieces.length === 1 && forcedPieces[0].moves.length === 1) {
+        const fp = forcedPieces[0];
+        selected = { row: fp.row, col: fp.col, isCapture: true };
+        possibleMoves = fp.moves;
+        renderBoard();
+        await delay(300);
+        await performMove(fp.row, fp.col, fp.moves[0][0], fp.moves[0][1], true);
     }
 }
 
@@ -102,6 +118,7 @@ async function fetchBoard() {
     startTimers();
     computeForcedPieces();
     renderBoard();
+    await autoMoveIfSingle();
 }
 
 async function fetchMoves(r, c) {
@@ -115,6 +132,66 @@ async function fetchCaptures(r, c) {
         `/api/captures/${boardId}?row=${r}&col=${c}&player=${turn}`
     )).json();
 }
+
+async function performMove(startR, startC, endR, endC, isCapture) {
+    const res = await fetch(`/api/move/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            start: [startR, startC],
+            end:   [endR, endC],
+            player: turn
+        })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        alert(data.detail || 'Неверный ход');
+        return;
+    }
+
+    boardState = data.board;
+    timers = data.timers;
+    timerStart = Date.now();
+    turn = data.timers.turn;
+    viewedMoveIndex = data.history.length;
+    updateHistory(data.history);
+    setActivePlayer(turn);
+    startTimers();
+
+    if (isCapture) {
+        const nextCaps = await fetchCaptures(endR, endC);
+        if (nextCaps.length === 1) {
+            selected = { row: endR, col: endC, isCapture: true };
+            possibleMoves = nextCaps;
+            renderBoard();
+            await delay(300);
+            await performMove(endR, endC, nextCaps[0][0], nextCaps[0][1], true);
+            return;
+        } else if (nextCaps.length > 0) {
+            selected = { row: endR, col: endC, isCapture: true };
+            possibleMoves = nextCaps;
+            multiCapture = true;
+            renderBoard();
+            return;
+        }
+    }
+
+    multiCapture = false;
+    selected = null;
+    possibleMoves = [];
+    computeForcedPieces();
+    renderBoard();
+    await autoMoveIfSingle();
+
+    if (data.status) {
+        if (data.status === 'white_win')      alert('Белые победили!');
+        else if (data.status === 'black_win') alert('Чёрные победили!');
+        else if (data.status === 'draw')      alert('Ничья!');
+        gameOver = true;
+        window.location.href = '/';
+    }
+}
+
 
 function renderBoard() {
     boardElement.innerHTML = '';
@@ -199,56 +276,15 @@ async function onCellClick(e) {
 
     if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
         const prev = selected;
-        const res = await fetch(`/api/move/${boardId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                start: [prev.row, prev.col],
-                end:   [r, c],
-                player: turn
-            })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            alert(data.detail || 'Неверный ход');
-            return;
-        }
-
-        boardState = data.board;
-        timers = data.timers;
-        timerStart = Date.now();
-        turn = data.timers.turn;
-        viewedMoveIndex = data.history.length;
-        updateHistory(data.history);
-        setActivePlayer(turn);
-        startTimers();
-
-        if (prev.isCapture) {
-            const nextCaps = await fetchCaptures(r, c);
-            if (nextCaps.length) {
-                selected = { row: r, col: c, isCapture: true };
-                possibleMoves = nextCaps;
-                multiCapture = true;
-                renderBoard();
-                return;
-            }
-        }
-        multiCapture = false;
-
-        if (data.status) {
-            if (data.status === 'white_win')      alert('Белые победили!');
-            else if (data.status === 'black_win') alert('Чёрные победили!');
-            else if (data.status === 'draw')      alert('Ничья!');
-            gameOver = true;
-            window.location.href = '/';
-            return;
-        }
+        await performMove(prev.row, prev.col, r, c, prev.isCapture);
+        return;
     }
 
     if (!multiCapture) {
         selected = null;
         possibleMoves = [];
         computeForcedPieces();
+        await autoMoveIfSingle();
     }
     renderBoard();
 }
