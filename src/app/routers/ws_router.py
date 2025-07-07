@@ -25,17 +25,17 @@ class ConnectionManager:
             except Exception:
                 self.disconnect(key, ws)
 
-manager = ConnectionManager()
+board_manager = ConnectionManager()
 waiting_manager = ConnectionManager()
 
 @ws_router.websocket("/ws/board/{board_id}")
 async def websocket_board(websocket: WebSocket, board_id: str):
-    await manager.connect(board_id, websocket)
+    await board_manager.connect(board_id, websocket)
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(board_id, websocket)
+        board_manager.disconnect(board_id, websocket)
 
 
 @ws_router.websocket("/ws/waiting/{user_id}")

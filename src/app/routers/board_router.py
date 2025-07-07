@@ -2,9 +2,8 @@ import uuid
 from fastapi import Request, APIRouter, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
-import json
 from typing import List, Optional, Tuple
-from src.app.routers.ws_router import manager
+from src.app.routers.ws_router import board_manager
 
 from src.settings.settings import templates
 from src.base.redis import (
@@ -151,7 +150,7 @@ async def api_make_move(board_id: str, req: MoveRequest):
         timers=current_timers,
     )
 
-    await manager.broadcast(board_id, result.json())
+    await board_manager.broadcast(board_id, result.json())
     return result
 
 @board_router.get("/api/snapshot/{board_id}/{index}", response_model=Board)
