@@ -168,6 +168,8 @@ async def check_waiting(username: str):
         if players:
             color = "white" if players.get("white") == username else "black"
             return board_id, color
+        else:
+            await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
     return None, None
 
 async def cancel_waiting(username: str):

@@ -121,3 +121,20 @@ async def authenticate_user(
     if user and verify_password(password, user.password):
         return user
     return None
+
+@connect
+async def get_user_stats(user_id: int, session: AsyncSession) -> dict:
+    stats = await session.get(UserStats, user_id)
+    if not stats:
+        return {
+            "total_games": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+        }
+    return {
+        "total_games": stats.total_games or 0,
+        "wins": stats.wins or 0,
+        "draws": stats.draws or 0,
+        "losses": stats.losses or 0,
+    }
