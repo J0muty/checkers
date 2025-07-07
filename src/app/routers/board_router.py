@@ -58,11 +58,12 @@ async def board_redirect(request: Request):
 @board_router.get("/board/{board_id}", response_class=HTMLResponse, name="board_page")
 async def board_page(request: Request, board_id: str):
     username = request.query_params.get("player")
+    color = request.query_params.get("color")
     if username:
         await assign_user_board(username, board_id)
     return templates.TemplateResponse(
         "board.html",
-        {"request": request, "board_id": board_id},
+        {"request": request, "board_id": board_id, "player_color": color or ""},
     )
 
 

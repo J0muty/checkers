@@ -2,6 +2,7 @@ import json
 import redis.asyncio as redis
 import time
 import logging
+import uuid
 from src.app.game.game_logic import create_initial_board, validate_move
 from src.settings.config import redis_host, redis_port, redis_db
 
@@ -17,6 +18,8 @@ USER_BOARD_KEY_PREFIX = "user_board"
 HISTORY_KEY_PREFIX = "history"
 TIMER_KEY_PREFIX = "timer"
 DEFAULT_TIME = 600
+WAITING_KEY = "waiting_user"
+COLOR_KEY_PREFIX = "color"
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +139,31 @@ async def get_board_state_at(board_id: str, index: int):
             raise
         player = "black" if player == "white" else "white"
     return board
+
+async def add_to_waiting(username: str):
+    """Put user into waiting queue or pair with existing player."""
+    waiting = await redis_client.get(WAITING_KEY)
+    if waiting and waiting != username:
+        board_id = str(uuid.uuid4())
+        await redis_client.delete(WAITING_KEY)
+        await assign_user_board(waiting, board_id)
+        await assign_user_board(username, board_id)
+        await redis_client.set(f"{COLOR_KEY_PREFIX}:{waiting}", "white")
+        await redis_client.set(f"{COLOR_KEY_PREFIX}:{username}", "black")
+        return board_id, "black"
+    await redis_client.set(WAITING_KEY, username)
+    return None, None
+
+async def check_waiting(username: str):
+    board_id = await get_user_board(username)
+    if board_id:
+        color = await redis_client.get(f"{COLOR_KEY_PREFIX}:{username}")
+        return board_id, color
+    return None, None
+
+async def cancel_waiting(username: str):
+    waiting = await redis_client.get(WAITING_KEY)
+    if waiting == username:
+        await redis_client.delete(WAITING_KEY)
+    await redis_client.delete(f"{COLOR_KEY_PREFIX}:{username}")
+    await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")

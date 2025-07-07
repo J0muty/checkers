@@ -1,0 +1,34 @@
+.waiting-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 20px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+}
+.spinner {
+    width: 80px;
+    height: 80px;
+    border: 8px solid var(--secondary-text-color);
+    border-top-color: var(--button-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.timer {
+    font-size: 1.5rem;
+}
+#cancelBtn {
+    padding: 0.8rem 1.2rem;
+    background: var(--button-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+}

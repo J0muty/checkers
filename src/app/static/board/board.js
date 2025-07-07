@@ -7,6 +7,7 @@ const player2 = document.querySelector('.player2');
 const returnButton = document.getElementById('returnButton');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
+const myColor = typeof playerColor !== 'undefined' && playerColor ? playerColor : null;
 
 let boardState = [];
 let selected = null;
@@ -94,6 +95,7 @@ function computeForcedPieces() {
 
 async function autoMoveIfSingle() {
     if (viewingHistory || gameOver) return;
+    if (myColor && turn !== myColor) return;
     if (forcedPieces.length === 1 && forcedPieces[0].moves.length === 1) {
         const fp = forcedPieces[0];
         selected = { row: fp.row, col: fp.col, isCapture: true };
@@ -241,6 +243,7 @@ function renderBoard() {
 
 async function onCellClick(e) {
     if (gameOver || viewingHistory) return;
+    if (myColor && turn !== myColor) return;
 
     const row = +e.currentTarget.dataset.row;
     const col = +e.currentTarget.dataset.col;
