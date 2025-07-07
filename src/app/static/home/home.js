@@ -7,6 +7,20 @@ const leaveYes = document.getElementById('leaveYes');
 const leaveNo = document.getElementById('leaveNo');
 
 let timerInterval = null;
+let waitingWs = null;
+let boardWs = null;
+let currentBoardId = null;
+
+function buildWaitingWsUrl() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${proto}://${location.host}/ws/waiting/${userId}`;
+}
+
+function buildBoardWsUrl(boardId) {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${proto}://${location.host}/ws/board/${boardId}`;
+}
+
 
 function formatTime(sec) {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
@@ -20,12 +34,65 @@ function startInterval(fn) {
     fn();
 }
 
+function setupWaitingWs() {
+    if (waitingWs) return;
+    waitingWs = new WebSocket(buildWaitingWsUrl());
+    waitingWs.addEventListener('message', () => {
+        updateStatus();
+    });
+    waitingWs.addEventListener('close', () => {
+        waitingWs = null;
+        if (statusBox.style.display === 'flex' && !currentBoardId) {
+            setTimeout(setupWaitingWs, 1000);
+        }
+    });
+}
+
+function setupBoardWs(boardId) {
+    if (boardWs && currentBoardId === boardId) return;
+    if (boardWs) {
+        boardWs.close();
+        boardWs = null;
+    }
+    currentBoardId = boardId;
+    boardWs = new WebSocket(buildBoardWsUrl(boardId));
+    boardWs.addEventListener('message', e => {
+        const data = JSON.parse(e.data);
+        if (data.status) {
+            updateStatus();
+        }
+    });
+    boardWs.addEventListener('close', () => {
+        boardWs = null;
+        if (currentBoardId) {
+            setTimeout(() => setupBoardWs(currentBoardId), 1000);
+        }
+    });
+}
+
+function closeAllWs() {
+    if (waitingWs) {
+        waitingWs.close();
+        waitingWs = null;
+    }
+    if (boardWs) {
+        boardWs.close();
+        boardWs = null;
+    }
+    currentBoardId = null;
+}
+
 async function updateStatus() {
     const res = await fetch('/api/user_status');
     if (!res.ok) return;
     const data = await res.json();
 
     if (data.board_id) {
+        setupBoardWs(data.board_id);
+        if (waitingWs) {
+            waitingWs.close();
+            waitingWs = null;
+        }
         statusBox.style.display = 'flex';
         returnBtn.onclick = () => {
             window.location.href = `/board/${data.board_id}?player=${userId}&color=${data.color}`;
@@ -51,6 +118,14 @@ async function updateStatus() {
             timerEl.textContent = formatTime(t[data.color]);
         });
     } else if (data.waiting_since) {
+        if (!waitingWs) {
+            setupWaitingWs();
+        }
+        if (boardWs) {
+            boardWs.close();
+            boardWs = null;
+            currentBoardId = null;
+        }
         statusBox.style.display = 'flex';
         returnBtn.onclick = () => {
             window.location.href = '/waiting';
@@ -64,6 +139,7 @@ async function updateStatus() {
             timerEl.textContent = formatTime(sec);
         });
     } else {
+        closeAllWs();
         statusBox.style.display = 'none';
         clearInterval(timerInterval);
     }
