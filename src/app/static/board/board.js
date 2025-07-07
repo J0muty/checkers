@@ -306,7 +306,7 @@ function updateHistory(history) {
     historyList.innerHTML = '';
     history.forEach((m, i) => {
         const li = document.createElement('li');
-        li.textContent = m;
+        li.textContent = displayMove(m);
         li.dataset.index = i + 1;
         li.addEventListener('click', onHistoryClick);
         if (viewedMoveIndex === i + 1) {
@@ -340,6 +340,21 @@ async function onHistoryClick(e) {
 
 function coord(p) {
     return 'ABCDEFGH'[p.col] + (8 - p.row);
+}
+
+function displayMove(move) {
+    if (myColor !== 'black') return move;
+    const convert = (pos) => {
+        const col = pos[0];
+        const row = parseInt(pos.slice(1));
+        const r = 8 - row;
+        const c = col.charCodeAt(0) - 65;
+        const r2 = 7 - r;
+        const c2 = 7 - c;
+        return String.fromCharCode(65 + c2) + (8 - r2);
+    };
+    const [start, end] = move.split('->');
+    return `${convert(start)}->${convert(end)}`;
 }
 
 function setActivePlayer(p) {
