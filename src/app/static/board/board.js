@@ -9,6 +9,14 @@ const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 const myColor = typeof playerColor !== 'undefined' && playerColor ? playerColor : null;
 
+function toBoardCoords(r, c) {
+    return myColor === 'black' ? [7 - r, 7 - c] : [r, c];
+}
+
+function fromBoardCoords(r, c) {
+    return myColor === 'black' ? [7 - r, 7 - c] : [r, c];
+}
+
 let boardState = [];
 let selected = null;
 let possibleMoves = [];
@@ -213,19 +221,20 @@ function renderBoard() {
             } else {
                 const r = row - 1;
                 const c = col - 1;
+                const [br, bc] = toBoardCoords(r, c);
                 cell.classList.add((r + c) % 2 ? 'dark' : 'light');
 
-                if (selected && selected.row === r && selected.col === c) {
+                if (selected && selected.row === br && selected.col === bc) {
                     cell.classList.add('selected');
                 }
-                if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
+                if (possibleMoves.some(m => m[0] === br && m[1] === bc)) {
                     cell.classList.add('highlight');
                 }
-                if (forcedPieces.some(p => p.row === r && p.col === c)) {
+                if (forcedPieces.some(p => p.row === br && p.col === bc)) {
                     cell.classList.add('forced');
                 }
 
-                const piece = boardState[r][c];
+                const piece = boardState[br][bc];
                 if (piece) {
                     const p = document.createElement('div');
                     p.classList.add('piece', piece.toLowerCase() === 'w' ? 'white' : 'black');
@@ -249,8 +258,9 @@ async function onCellClick(e) {
     const col = +e.currentTarget.dataset.col;
     if (row === 0 || row === 9 || col === 0 || col === 9) return;
 
-    const r = row - 1;
-    const c = col - 1;
+    const rDisplay = row - 1;
+    const cDisplay = col - 1;
+    const [r, c] = toBoardCoords(rDisplay, cDisplay);
 
     if (multiCapture && !possibleMoves.some(m => m[0] === r && m[1] === c)) {
         return;
