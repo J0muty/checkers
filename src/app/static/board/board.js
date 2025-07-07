@@ -128,11 +128,10 @@ async function handleUpdate(data) {
     computeForcedPieces();
     renderBoard();
     await autoMoveIfSingle();
-
     if (data.status) {
-        if (data.status === 'white_win')      alert('Белые победили!');
+        if (data.status === 'white_win') alert('Белые победили!');
         else if (data.status === 'black_win') alert('Чёрные победили!');
-        else if (data.status === 'draw')      alert('Ничья!');
+        else if (data.status === 'draw') alert('Ничья!');
         gameOver = true;
         window.location.href = '/';
     }
@@ -161,7 +160,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             start: [startR, startC],
-            end:   [endR, endC],
+            end: [endR, endC],
             player: turn
         })
     });
@@ -170,9 +169,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         alert(data.detail || 'Неверный ход');
         return;
     }
-
     await handleUpdate(data);
-
     if (isCapture) {
         const nextCaps = await fetchCaptures(endR, endC);
         if (nextCaps.length === 1) {
@@ -190,15 +187,12 @@ async function performMove(startR, startC, endR, endC, isCapture) {
             return;
         }
     }
-
     multiCapture = false;
     selected = null;
     possibleMoves = [];
     renderBoard();
     await autoMoveIfSingle();
-
 }
-
 
 function renderBoard() {
     boardElement.innerHTML = '';
@@ -208,7 +202,6 @@ function renderBoard() {
             cell.classList.add('square');
             cell.dataset.row = row;
             cell.dataset.col = col;
-
             if (row === 0 || row === 9) {
                 cell.classList.add('label', row === 0 ? 'label-top' : 'label-bottom');
                 cell.textContent = letters[col];
@@ -220,7 +213,6 @@ function renderBoard() {
                 const c = col - 1;
                 const [br, bc] = toBoardCoords(r, c);
                 cell.classList.add((r + c) % 2 ? 'dark' : 'light');
-
                 if (selected && selected.row === br && selected.col === bc) {
                     cell.classList.add('selected');
                 }
@@ -230,18 +222,21 @@ function renderBoard() {
                 if (forcedPieces.some(p => p.row === br && p.col === bc)) {
                     cell.classList.add('forced');
                 }
-
                 const piece = boardState[br][bc];
                 if (piece) {
                     const p = document.createElement('div');
                     p.classList.add('piece', piece.toLowerCase() === 'w' ? 'white' : 'black');
-                    if (piece === piece.toUpperCase()) p.classList.add('king');
+                    if (
+                        piece === piece.toUpperCase() ||
+                        (piece.toLowerCase() === 'w' && br === 0) ||
+                        (piece.toLowerCase() === 'b' && br === 7)
+                    ) {
+                        p.classList.add('king');
+                    }
                     cell.appendChild(p);
                 }
-
                 cell.addEventListener('click', onCellClick);
             }
-
             boardElement.appendChild(cell);
         }
     }
@@ -250,21 +245,16 @@ function renderBoard() {
 async function onCellClick(e) {
     if (gameOver || viewingHistory) return;
     if (myColor && turn !== myColor) return;
-
     const row = +e.currentTarget.dataset.row;
     const col = +e.currentTarget.dataset.col;
     if (row === 0 || row === 9 || col === 0 || col === 9) return;
-
     const rDisplay = row - 1;
     const cDisplay = col - 1;
     const [r, c] = toBoardCoords(rDisplay, cDisplay);
-
     if (multiCapture && !possibleMoves.some(m => m[0] === r && m[1] === c)) {
         return;
     }
-
     const piece = boardState[r][c];
-
     if (!selected) {
         if (forcedPieces.length && !forcedPieces.some(p => p.row === r && p.col === c)) {
             return;
@@ -283,13 +273,11 @@ async function onCellClick(e) {
         renderBoard();
         return;
     }
-
     if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
         const prev = selected;
         await performMove(prev.row, prev.col, r, c, prev.isCapture);
         return;
     }
-
     if (!multiCapture) {
         selected = null;
         possibleMoves = [];

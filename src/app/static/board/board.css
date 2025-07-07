@@ -161,6 +161,7 @@ body {
     align-items: center;
     padding: var(--gap-size);
     background-color: var(--surface-color);
+    perspective: 800px;
 }
 
 .board-grid {
@@ -214,20 +215,67 @@ body {
     width: calc(var(--cell-content-size) * 100%);
     height: calc(var(--cell-content-size) * 100%);
     border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     display: flex;
     justify-content: center;
     align-items: center;
+    transform-style: preserve-3d;
+    transform: rotateX(15deg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-blend-mode 0.2s ease;
+    overflow: hidden;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 
 .piece.white {
-    background: radial-gradient(circle at 30% 30%, #FFFFFF, #DDDDDD);
+    position: relative;
+    background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #EEEEEE 60%, #AAAAAA 100%);
+    background-blend-mode: multiply;
     border: 1px solid #BBBBBB;
+    box-shadow:
+      inset 0 8px 8px -5px rgba(0,0,0,0.5),
+      inset 0 -4px 6px -3px rgba(255,255,255,0.2);
+}
+
+.piece.white:hover {
+    transform: rotateX(15deg) scale(1.05);
 }
 
 .piece.black {
-    background: radial-gradient(circle at 30% 30%, #333333, #000000);
+    position: relative;
+    background: radial-gradient(circle at 30% 30%, #444444 0%, #222222 60%, #000000 100%);
+    background-blend-mode: multiply;
     border: 1px solid #111111;
+    box-shadow:
+      inset 0 8px 8px -5px rgba(255,255,255,0.2),
+      inset 0 -4px 6px -3px rgba(0,0,0,0.5);
+}
+
+.piece.black:hover {
+    transform: rotateX(15deg) scale(1.05);
+}
+
+@keyframes goldGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 6px rgba(255,215,0,0.8),
+      0 0 12px rgba(255,215,0,0.6),
+      inset 0 0 4px rgba(255,215,0,0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(255,215,0,1),
+      0 0 20px rgba(255,215,0,0.8),
+      inset 0 0 6px rgba(255,215,0,0.7);
+  }
+}
+
+.piece.king {
+  border: 2px solid #FFD700;
+  animation: goldGlow 2s ease-in-out infinite;
+}
+
+.piece.king:hover {
+  animation-duration: 1.5s;
+  transform: rotateX(15deg) scale(1.08);
 }
 
 .selected {
@@ -242,7 +290,6 @@ body {
 .square.forced {
     box-shadow: inset 0 0 0 4px red;
 }
-
 
 @media (max-width: 1200px) {
     .sidebar {
