@@ -1,7 +1,14 @@
 from fastapi import Request, APIRouter, status, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from src.settings.settings import templates
-from src.base.redis import add_to_waiting, check_waiting, cancel_waiting
+from src.base.redis import (
+    add_to_waiting,
+    check_waiting,
+    cancel_waiting,
+    get_board_players,
+)
+from src.app.routers.ws_router import waiting_manager
+import json
 
 waiting_router = APIRouter()
 
@@ -23,6 +30,14 @@ async def api_search_game(request: Request):
     if not user_id:
         raise HTTPException(status_code=401)
     board_id, color = await add_to_waiting(str(user_id))
+    if board_id:
+        players = await get_board_players(board_id)
+        if players:
+            for c, uid in players.items():
+                await waiting_manager.broadcast(
+                    uid,
+                    json.dumps({"board_id": board_id, "color": c}),
+                )
     return JSONResponse({"board_id": board_id, "color": color})
 
 
