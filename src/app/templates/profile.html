@@ -2,11 +2,84 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Профиль</title>
+    <title>Главная</title>
+    <script>
+        if (localStorage.theme === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/profile/profile.css">
-    <script src="/static/profile/profile.js" defer></script>
 </head>
 <body>
+    <header class="topbar">
+        <button id="sidebarToggle" class="btn-icon"><i class="fa-solid fa-bars"></i></button>
+        <button id="theme-toggle" class="btn-icon"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+    </header>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Вернуться</span>
+            </a>
+            <button id="sidebarClose" class="btn-icon"><i class="fa-solid fa-minus"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Главная</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <i class="fa-solid fa-user"></i>
+                <span>Профиль</span>
+            </a>
+            <a href="/friends" class="nav-item">
+                <i class="fa-solid fa-user-group"></i>
+                <span>Друзья</span>
+            </a>
+            <a href="/settings" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Настройки</span>
+            </a>
+            <a href="/logout" class="nav-item">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Выход</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="profile-content">
+        <div class="stats-wrapper">
+            <div class="left-panel">
+                <div class="user-card">
+                    <div class="avatar">{{ user_id|string|first|upper }}</div>
+                    <h1 class="username">{{ user_id }}</h1>
+                </div>
+                <div class="stat-card total">
+                    <div class="value" id="total-games">0</div>
+                    <div class="label">Всего игр</div>
+                </div>
+                <div class="sub-stats">
+                    <div class="stat-card">
+                        <div class="value" id="wins">0</div>
+                        <div class="label">Победы</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="draws">0</div>
+                        <div class="label">Ничьи</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="losses">0</div>
+                        <div class="label">Поражения</div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-panel">
+                <canvas id="stats-chart"></canvas>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/profile/profile.js"></script>
 </body>
 </html>

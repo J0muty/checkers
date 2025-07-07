@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('theme-toggle');
     const root = document.documentElement;
     const icon = document.getElementById('theme-icon');
 
@@ -17,7 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTheme(localStorage.theme === 'dark' ? 'dark' : 'light');
 
-    toggle.addEventListener('click', () => {
-        setTheme(root.classList.contains('dark-mode') ? 'light' : 'dark');
-    });
+    const toggle = document.getElementById('theme-toggle');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            setTheme(root.classList.contains('dark-mode') ? 'light' : 'dark');
+        });
+    }
 });

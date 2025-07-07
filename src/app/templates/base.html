@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
         }
     </script>
     <title>{% block title %}TheCheckers{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/base/base.css">
     {% block extra_css %}{% endblock %}
 </head>
@@ -17,19 +17,13 @@
     <header class="header">
         <div class="logo">TheCheckers</div>
         <nav class="nav">
-            <button id="theme-toggle">
-                <i class="fas fa-moon" id="theme-icon"></i>
-            </button>
 
             {# Вот здесь проверяем, есть ли в сессии user_id #}
             {% if request.session.user_id %}
-                {# Если пользователь залогинен, показываем «Профиль» и «Logout» #}
                 <a href="{{ url_for('profile') }}">Профиль</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
-                {# Если не залогинен — показываем Login и Register #}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}">Register</a>
+                <a href="{{ url_for('login') }}">Вход</a>
+                <a href="{{ url_for('register') }}">Регистрация</a>
             {% endif %}
 
         </nav>
