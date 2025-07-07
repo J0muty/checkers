@@ -114,8 +114,7 @@ async function autoMoveIfSingle() {
     }
 }
 
-async function fetchBoard() {
-    const data = await (await fetch(`/api/board/${boardId}`)).json();
+async function handleUpdate(data) {
     boardState = data.board;
     timers = data.timers;
     timerStart = Date.now();
@@ -129,6 +128,19 @@ async function fetchBoard() {
     computeForcedPieces();
     renderBoard();
     await autoMoveIfSingle();
+
+    if (data.status) {
+        if (data.status === 'white_win')      alert('Белые победили!');
+        else if (data.status === 'black_win') alert('Чёрные победили!');
+        else if (data.status === 'draw')      alert('Ничья!');
+        gameOver = true;
+        window.location.href = '/';
+    }
+}
+
+async function fetchBoard() {
+    const data = await (await fetch(`/api/board/${boardId}`)).json();
+    await handleUpdate(data);
 }
 
 async function fetchMoves(r, c) {
@@ -159,14 +171,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         return;
     }
 
-    boardState = data.board;
-    timers = data.timers;
-    timerStart = Date.now();
-    turn = data.timers.turn;
-    viewedMoveIndex = data.history.length;
-    updateHistory(data.history);
-    setActivePlayer(turn);
-    startTimers();
+    await handleUpdate(data);
 
     if (isCapture) {
         const nextCaps = await fetchCaptures(endR, endC);
@@ -189,17 +194,9 @@ async function performMove(startR, startC, endR, endC, isCapture) {
     multiCapture = false;
     selected = null;
     possibleMoves = [];
-    computeForcedPieces();
     renderBoard();
     await autoMoveIfSingle();
 
-    if (data.status) {
-        if (data.status === 'white_win')      alert('Белые победили!');
-        else if (data.status === 'black_win') alert('Чёрные победили!');
-        else if (data.status === 'draw')      alert('Ничья!');
-        gameOver = true;
-        window.location.href = '/';
-    }
 }
 
 
@@ -384,7 +381,24 @@ function startTimers() {
     timerInterval = setInterval(updateTimerDisplay, 1000);
 }
 
+function buildWsUrl() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${proto}://${location.host}/ws/board/${boardId}`;
+}
+
+function setupWebSocket() {
+    const ws = new WebSocket(buildWsUrl());
+    ws.addEventListener('message', async (e) => {
+        const data = JSON.parse(e.data);
+        await handleUpdate(data);
+    });
+    ws.addEventListener('close', () => {
+        setTimeout(setupWebSocket, 1000);
+    });
+}
+
 fetchBoard();
+setupWebSocket();
 
 returnButton.addEventListener('click', () => {
     fetchBoard();
