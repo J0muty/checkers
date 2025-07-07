@@ -391,3 +391,21 @@ setupWebSocket();
 returnButton.addEventListener('click', () => {
     fetchBoard();
 });
+
+const menuToggle = document.querySelector('.menu-toggle');
+const rightSidebar = document.querySelector('.right-sidebar');
+menuToggle.addEventListener('click', e => {
+    e.stopPropagation();
+    rightSidebar.classList.toggle('open');
+});
+rightSidebar.addEventListener('click', e => {
+    e.stopPropagation();
+});
+document.addEventListener('click', () => {
+    if (rightSidebar.classList.contains('open')) {
+        rightSidebar.classList.remove('open');
+    }
+});
+document.getElementById('menuHome').addEventListener('click', () => {
+    window.location.href = '/';
+});
