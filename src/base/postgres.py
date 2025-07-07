@@ -3,7 +3,7 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy import text
 from sqlalchemy.engine import URL
 from sqlalchemy import select
-from src.base.postgres_models import Base, User
+from src.base.postgres_models import Base, User, UserStats
 from src.app.utils.security import hash_password, verify_password
 from src.settings.config import MOSCOW_TZ, db_user, db_password, db_host, db_port, db_name
 
@@ -76,7 +76,35 @@ async def create_user(
     user = User(login=login_norm, email=email_norm, password=pwd_hash)
     session.add(user)
     await session.commit()
+    session.add(UserStats(user_id=user.id))
+    await session.commit()
     return user
+
+@connect
+async def record_game_result(user_id: int, result: str, session: AsyncSession) -> None:
+    stats = await session.get(UserStats, user_id)
+    if not stats:
+        stats = UserStats(
+            user_id=user_id,
+            total_games=0,
+            wins=0,
+            draws=0,
+            losses=0,
+        )
+        session.add(stats)
+
+    stats.total_games = (stats.total_games or 0) + 1
+
+    if result == "win":
+        stats.wins = (stats.wins or 0) + 1
+    elif result == "loss":
+        stats.losses = (stats.losses or 0) + 1
+    elif result == "draw":
+        stats.draws = (stats.draws or 0) + 1
+    else:
+        raise ValueError(f"Unknown result type: {result}")
+
+    await session.commit()
 
 @connect
 async def authenticate_user(

@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 import json
 from typing import List, Optional, Tuple
-from .ws_router import manager
+from src.app.routers.ws_router import manager
 
 from src.settings.settings import templates
 from src.base.redis import (
@@ -17,8 +17,11 @@ from src.base.redis import (
     apply_move_timer,
     apply_same_turn_timer,
     get_board_state_at,
+    get_board_players,
+    cleanup_board,
 )
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
+from src.base.postgres import record_game_result
 
 Board = List[List[Optional[str]]]
 Point = Tuple[int, int]
@@ -121,6 +124,22 @@ async def api_make_move(board_id: str, req: MoveRequest):
         status = "black_win" if req.player == "white" else "white_win"
     else:
         status = game_status(new_board)
+
+    if status:
+        players = await get_board_players(board_id)
+        if players:
+            white_id = int(players.get("white"))
+            black_id = int(players.get("black"))
+            if status == "white_win":
+                await record_game_result(white_id, "win")
+                await record_game_result(black_id, "loss")
+            elif status == "black_win":
+                await record_game_result(white_id, "loss")
+                await record_game_result(black_id, "win")
+            elif status == "draw":
+                await record_game_result(white_id, "draw")
+                await record_game_result(black_id, "draw")
+        await cleanup_board(board_id)
 
     history = await get_history(board_id)
     current_timers = await get_current_timers(board_id)
