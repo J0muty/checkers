@@ -8,7 +8,6 @@ function cancelSearch() {
     navigator.sendBeacon('/api/cancel_game');
 }
 
-
 function formatTime(s) {
     const m = Math.floor(s / 60).toString().padStart(2, '0');
     const sec = (s % 60).toString().padStart(2, '0');
@@ -16,9 +15,11 @@ function formatTime(s) {
 }
 
 async function startTimer() {
-const res = await fetch('/api/user_status');
+    const res = await fetch('/api/user_status');
     const data = await res.json();
-    const start = data.waiting_since ? data.waiting_since * 1000 : Date.now();
+    const start = data.waiting_since
+        ? data.waiting_since * 1000
+        : Date.now();
     seconds = Math.floor((Date.now() - start) / 1000);
     timerEl.textContent = formatTime(seconds);
     clearInterval(timerInterval);
@@ -53,7 +54,7 @@ function cleanupAndGo(boardId, color) {
 }
 
 async function joinQueue() {
-    const res = await fetch('/api/search_game', {method: 'POST'});
+    const res = await fetch('/api/search_game', { method: 'POST' });
     const data = await res.json();
     if (data.board_id) {
         cleanupAndGo(data.board_id, data.color);
@@ -62,14 +63,31 @@ async function joinQueue() {
     }
 }
 
-window.addEventListener('beforeunload', cancelSearch);
+window.addEventListener('beforeunload', () => {
+    if (!performance.getEntriesByType ||
+        performance.getEntriesByType('navigation')[0].type !== 'reload') {
+        cancelSearch();
+    }
+});
 
 cancelBtn.addEventListener('click', async () => {
-    await fetch('/api/cancel_game', {method: 'POST'});
+    await fetch('/api/cancel_game', { method: 'POST' });
     window.removeEventListener('beforeunload', cancelSearch);
     clearInterval(timerInterval);
     window.location.href = '/';
 });
 
-setupWebSocket();
-joinQueue();
+document.addEventListener('DOMContentLoaded', async () => {
+    setupWebSocket();
+
+    const res = await fetch('/api/user_status');
+    const data = await res.json();
+
+    if (data.board_id) {
+        cleanupAndGo(data.board_id, data.color);
+    } else if (data.waiting_since) {
+        await startTimer();
+    } else {
+        await joinQueue();
+    }
+});

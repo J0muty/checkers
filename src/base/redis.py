@@ -161,6 +161,8 @@ async def add_to_waiting(username: str):
         await assign_user_board(username, board_id)
         await set_board_players(board_id, {"white": waiting, "black": username})
         return board_id, "black"
+    if waiting == username:
+        return None, None
     await redis_client.set(WAITING_KEY, username)
     await redis_client.set(f"{WAITING_TIME_PREFIX}:{username}", time.time())
     return None, None
