@@ -18,6 +18,7 @@ USER_BOARD_KEY_PREFIX = "user_board"
 HISTORY_KEY_PREFIX = "history"
 TIMER_KEY_PREFIX = "timer"
 PLAYERS_KEY = "players"
+DRAW_OFFER_KEY_PREFIX = "draw_offer"
 DEFAULT_TIME = 600
 WAITING_KEY = "waiting_user"
 
@@ -186,3 +187,17 @@ async def cleanup_board(board_id: str):
     keys = await redis_client.keys(f"{REDIS_KEY_PREFIX}:{board_id}:*")
     if keys:
         await redis_client.delete(*keys)
+
+async def set_draw_offer(board_id: str, player: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    await redis_client.set(key, player)
+
+
+async def get_draw_offer(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    return await redis_client.get(key)
+
+
+async def clear_draw_offer(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    await redis_client.delete(key)

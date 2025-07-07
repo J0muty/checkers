@@ -5,6 +5,12 @@ const timer2 = document.getElementById('timer2');
 const player1 = document.querySelector('.player1');
 const player2 = document.querySelector('.player2');
 const returnButton = document.getElementById('returnButton');
+const resignModal = document.getElementById('resignModal');
+const confirmResignBtn = document.getElementById('confirmResignBtn');
+const cancelResignBtn = document.getElementById('cancelResignBtn');
+const drawOfferModal = document.getElementById('drawOfferModal');
+const acceptDrawBtn = document.getElementById('acceptDrawBtn');
+const declineDrawBtn = document.getElementById('declineDrawBtn');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 const myColor = typeof playerColor !== 'undefined' && playerColor ? playerColor : null;
@@ -32,6 +38,14 @@ let viewedMoveIndex = 0;
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function showModal(m) {
+    m.classList.add('active');
+}
+
+function hideModal(m) {
+    m.classList.remove('active');
 }
 
 function withinBounds(r, c) {
@@ -378,7 +392,13 @@ function setupWebSocket() {
     const ws = new WebSocket(buildWsUrl());
     ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
-        await handleUpdate(data);
+        if (data.type === 'draw_offer') {
+            showModal(drawOfferModal);
+        } else if (data.type === 'draw_declined') {
+            alert('Предложение ничьи отклонено');
+        } else {
+            await handleUpdate(data);
+        }
     });
     ws.addEventListener('close', () => {
         setTimeout(setupWebSocket, 1000);
@@ -409,3 +429,49 @@ document.addEventListener('click', () => {
 document.getElementById('menuHome').addEventListener('click', () => {
     window.location.href = '/';
 });
+
+document.getElementById('menuResign').addEventListener('click', () => {
+    rightSidebar.classList.remove('open');
+    showModal(resignModal);
+});
+
+confirmResignBtn.addEventListener('click', async () => {
+    hideModal(resignModal);
+    const res = await fetch(`/api/resign/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor })
+    });
+    if (res.ok) {
+        const data = await res.json();
+        await handleUpdate(data);
+    }
+});
+
+cancelResignBtn.addEventListener('click', () => hideModal(resignModal));
+
+document.getElementById('menuDraw').addEventListener('click', async () => {
+    rightSidebar.classList.remove('open');
+    const res = await fetch(`/api/draw_offer/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor })
+    });
+    if (res.ok) alert('Предложение отправлено');
+});
+
+acceptDrawBtn.addEventListener('click', () => respondDraw(true));
+declineDrawBtn.addEventListener('click', () => respondDraw(false));
+
+async function respondDraw(accept) {
+    hideModal(drawOfferModal);
+    const res = await fetch(`/api/draw_response/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor, accept })
+    });
+    if (res.ok && accept) {
+        const data = await res.json();
+        await handleUpdate(data);
+    }
+}
