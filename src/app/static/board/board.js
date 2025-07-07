@@ -35,6 +35,7 @@ let multiCapture = false;
 let viewingHistory = false;
 let forcedPieces = [];
 let viewedMoveIndex = 0;
+let isPerformingAutoMove = false;
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -116,15 +117,21 @@ function computeForcedPieces() {
 }
 
 async function autoMoveIfSingle() {
-    if (viewingHistory || gameOver) return;
+    if (viewingHistory || gameOver || isPerformingAutoMove) return;
     if (myColor && turn !== myColor) return;
+
     if (forcedPieces.length === 1 && forcedPieces[0].moves.length === 1) {
-        const fp = forcedPieces[0];
-        selected = { row: fp.row, col: fp.col, isCapture: true };
-        possibleMoves = fp.moves;
-        renderBoard();
-        await delay(300);
-        await performMove(fp.row, fp.col, fp.moves[0][0], fp.moves[0][1], true);
+        isPerformingAutoMove = true;
+        try {
+            const fp = forcedPieces[0];
+            selected = { row: fp.row, col: fp.col, isCapture: true };
+            possibleMoves = fp.moves;
+            renderBoard();
+            await delay(300);
+            await performMove(fp.row, fp.col, fp.moves[0][0], fp.moves[0][1], true);
+        } finally {
+            isPerformingAutoMove = false;
+        }
     }
 }
 
@@ -141,7 +148,12 @@ async function handleUpdate(data) {
     startTimers();
     computeForcedPieces();
     renderBoard();
-    await autoMoveIfSingle();
+
+    // Вызываем только если еще не выполняется автоматический ход
+    if (!isPerformingAutoMove) {
+        await autoMoveIfSingle();
+    }
+
     if (data.status) {
         if (data.status === 'white_win') alert('Белые победили!');
         else if (data.status === 'black_win') alert('Чёрные победили!');
@@ -183,7 +195,10 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         alert(data.detail || 'Неверный ход');
         return;
     }
+
+    // Обновляем состояние перед следующим автоматическим ходом
     await handleUpdate(data);
+
     if (isCapture) {
         const nextCaps = await fetchCaptures(endR, endC);
         if (nextCaps.length === 1) {
@@ -191,6 +206,8 @@ async function performMove(startR, startC, endR, endC, isCapture) {
             possibleMoves = nextCaps;
             renderBoard();
             await delay(300);
+
+            // Выполняем следующий захват уже с актуальным состоянием
             await performMove(endR, endC, nextCaps[0][0], nextCaps[0][1], true);
             return;
         } else if (nextCaps.length > 0) {
