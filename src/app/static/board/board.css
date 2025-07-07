@@ -1,16 +1,9 @@
 :root {
-    --background-color: #FFFFFF;
-    --surface-color: #FFFFFF;
-    --accent-color: #FF0000;
-    --button-color: #2464DB;
-    --text-color: #181A20;
-    --secondary-text-color: #7D8193;
-    --font-family: 'Inter', sans-serif;
-    --border-radius: 10px;
     --cell-content-size: 0.7;
     --sidebar-width: 280px;
     --gap-size: 12px;
     --font-base: 1rem;
+    --border-radius: 10px;
 }
 
 * {
@@ -66,7 +59,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #F6F8FB;
+    background-color: var(--background-color);
     padding: calc(var(--gap-size) * 1);
     border-radius: var(--border-radius);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -108,7 +101,7 @@ body {
     overflow-y: auto;
     border: 1px solid #E1E3E8;
     border-radius: var(--border-radius);
-    background-color: #F6F8FB;
+    background-color: var(--background-color);
     -ms-overflow-style: auto;
     scrollbar-width: auto;
 }
@@ -133,11 +126,11 @@ body {
 }
 
 .history-list li.active-history {
-    background-color: #e0f0ff;
+    background-color: var(--surface-color);
 }
 
 .history-list li:hover {
-    background-color: #FFFFFF;
+    background-color: var(--surface-color);
 }
 
 .history-list li:last-child {
