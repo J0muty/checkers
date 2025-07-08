@@ -195,18 +195,22 @@ html, body {
 
 .rank-card,
 .elo-card {
-    width: 300px;
+    width: 320px;
     padding: 32px;
+}
+
+.rank-card .value {
+    margin-bottom: 0;
 }
 
 .rank-card {
     display: flex;
     align-items: center;
-    gap: 12px;
     justify-content: center;
+    gap: 12px;
 }
 
 .rank-icon {
-    font-size: 1.75rem;
-    color: var(--button-color);
+    width: 3.75rem;
+    height: 3.75rem;
 }
