@@ -3,7 +3,8 @@ import redis.asyncio as redis
 import time
 import logging
 import uuid
-from src.app.game.game_logic import create_initial_board, validate_move
+from typing import List, Tuple
+from src.app.game.game_logic import create_initial_board, validate_move, Board
 from src.settings.config import redis_host, redis_port, redis_db
 
 redis_client = redis.Redis(
@@ -123,32 +124,40 @@ async def apply_same_turn_timer(board_id: str, player: str):
     await redis_client.set(key, json.dumps(timers))
     return timers
 
-async def get_board_state_at(board_id: str, index: int):
+async def get_board_state_at(board_id: str, index: int) -> Board:
     history = await get_history(board_id)
     logger.info("Rebuilding board %s at step %d", board_id, index)
     if index >= len(history):
         logger.info("Requested index %d beyond history length %d", index, len(history))
         return await get_board_state(board_id)
 
+    parsed_moves: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
+    for mv in history[:index]:
+        start_str, end_str = mv.split("->")
+        start = (8 - int(start_str[1]), ord(start_str[0]) - 65)
+        end   = (8 - int(end_str[1]),   ord(end_str[0]) - 65)
+        parsed_moves.append((start, end))
+
     board = await create_initial_board()
     player = "white"
-    for step, move in enumerate(history[:index], start=1):
-        try:
-            start, end = move.split("->")
-            start_pos = (8 - int(start[1]), ord(start[0]) - 65)
-            end_pos = (8 - int(end[1]), ord(end[0]) - 65)
-        except Exception as e:
-            logger.error("Failed to parse move '%s' at step %d: %s", move, step, e)
-            continue
-        logger.debug(
-            "Step %d by %s: %s -> %s", step, player, start_pos, end_pos
+
+    for i, (start, end) in enumerate(parsed_moves):
+        logger.debug("Replaying step %d by %s: %s -> %s", i + 1, player, start, end)
+        board = await validate_move(board, start, end, player)
+
+        dr = abs(end[0] - start[0])
+        dc = abs(end[1] - start[1])
+        is_capture = dr > 1 or dc > 1
+
+        next_in_chain = (
+            is_capture
+            and i + 1 < len(parsed_moves)
+            and parsed_moves[i + 1][0] == end
         )
-        try:
-            board = await validate_move(board, start_pos, end_pos, player)
-        except ValueError as e:
-            logger.exception("Invalid move at step %d: %s", step, e)
-            raise
-        player = "black" if player == "white" else "white"
+
+        if not next_in_chain:
+            player = "black" if player == "white" else "white"
+
     return board
 
 async def add_to_waiting(username: str):

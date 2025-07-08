@@ -22,5 +22,7 @@ class UserStats(Base):
     wins = Column(Integer, default=0)
     draws = Column(Integer, default=0)
     losses = Column(Integer, default=0)
+    elo = Column(Integer, default=0)
+    rang = Column(String(50), default="Новичок")
 
     user = relationship("User", back_populates="stats")

@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import URL
 from sqlalchemy import select
 from src.base.postgres_models import Base, User, UserStats
+from src.app.game.count_and_rang import update_elo, calculate_rank
 from src.app.utils.security import hash_password, verify_password
 from src.settings.config import MOSCOW_TZ, db_user, db_password, db_host, db_port, db_name
 
@@ -76,12 +77,12 @@ async def create_user(
     user = User(login=login_norm, email=email_norm, password=pwd_hash)
     session.add(user)
     await session.commit()
-    session.add(UserStats(user_id=user.id))
+    session.add(UserStats(user_id=user.id, elo=0, rang="Новичок"))
     await session.commit()
     return user
 
 @connect
-async def record_game_result(user_id: int, result: str, session: AsyncSession) -> None:
+async def record_game_result(user_id: int, result: str, opponent_elo: int, session: AsyncSession) -> None:
     stats = await session.get(UserStats, user_id)
     if not stats:
         stats = UserStats(
@@ -90,6 +91,8 @@ async def record_game_result(user_id: int, result: str, session: AsyncSession) -
             wins=0,
             draws=0,
             losses=0,
+            elo=0,
+            rang="Новичок",
         )
         session.add(stats)
 
@@ -103,6 +106,9 @@ async def record_game_result(user_id: int, result: str, session: AsyncSession) -
         stats.draws = (stats.draws or 0) + 1
     else:
         raise ValueError(f"Unknown result type: {result}")
+
+    stats.elo = update_elo(stats.elo or 0, opponent_elo, result)
+    stats.rang = calculate_rank(stats.elo)
 
     await session.commit()
 
@@ -131,10 +137,14 @@ async def get_user_stats(user_id: int, session: AsyncSession) -> dict:
             "wins": 0,
             "draws": 0,
             "losses": 0,
+            "elo": 0,
+            "rang": calculate_rank(0),
         }
     return {
         "total_games": stats.total_games or 0,
         "wins": stats.wins or 0,
         "draws": stats.draws or 0,
         "losses": stats.losses or 0,
+        "elo": stats.elo or 0,
+        "rang": stats.rang,
     }
