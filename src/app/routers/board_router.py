@@ -80,7 +80,12 @@ async def board_page(request: Request, board_id: str):
         await assign_user_board(username, board_id)
     return templates.TemplateResponse(
         "board.html",
-        {"request": request, "board_id": board_id, "player_color": color or ""},
+        {
+            "request": request,
+            "board_id": board_id,
+            "player_color": color or "",
+            "api_base": "/api",
+        },
     )
 
 @board_router.get("/singleplayer_easy", response_class=HTMLResponse, name="singleplayer_easy")

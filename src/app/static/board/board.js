@@ -162,25 +162,27 @@ async function handleUpdate(data) {
     }
 }
 
+const apiBase = typeof window.apiBase !== 'undefined' ? window.apiBase : '/api';
+
 async function fetchBoard() {
-    const data = await (await fetch(`/api/board/${boardId}`)).json();
+    const data = await (await fetch(`${apiBase}/board/${boardId}`)).json();
     await handleUpdate(data);
 }
 
 async function fetchMoves(r, c) {
     return await (await fetch(
-        `/api/moves/${boardId}?row=${r}&col=${c}&player=${turn}`
+        `${apiBase}/moves/${boardId}?row=${r}&col=${c}&player=${turn}`
     )).json();
 }
 
 async function fetchCaptures(r, c) {
     return await (await fetch(
-        `/api/captures/${boardId}?row=${r}&col=${c}&player=${turn}`
+        `${apiBase}/captures/${boardId}?row=${r}&col=${c}&player=${turn}`
     )).json();
 }
 
 async function performMove(startR, startC, endR, endC, isCapture) {
-    const res = await fetch(`/api/move/${boardId}`, {
+    const res = await fetch(`${apiBase}/move/${boardId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -341,7 +343,7 @@ async function onHistoryClick(e) {
         fetchBoard();
         return;
     }
-    const data = await (await fetch(`/api/snapshot/${boardId}/${idx}`)).json();
+    const data = await (await fetch(`${apiBase}/snapshot/${boardId}/${idx}`)).json();
     boardState = data;
     clearInterval(timerInterval);
     viewingHistory = true;
