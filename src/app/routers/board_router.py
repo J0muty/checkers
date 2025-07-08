@@ -88,33 +88,6 @@ async def board_page(request: Request, board_id: str):
         },
     )
 
-@board_router.get("/singleplayer_easy", response_class=HTMLResponse, name="singleplayer_easy")
-async def singleplayer_easy(request: Request, color: str = "white"):
-    board_id = str(uuid.uuid4())
-    return templates.TemplateResponse(
-        "singleplayer.html",
-        {"request": request, "board_id": board_id, "player_color": color},
-    )
-
-
-@board_router.get("/singleplayer_medium", response_class=HTMLResponse, name="singleplayer_medium")
-async def singleplayer_medium(request: Request, color: str = "white"):
-    board_id = str(uuid.uuid4())
-    return templates.TemplateResponse(
-        "singleplayer.html",
-        {"request": request, "board_id": board_id, "player_color": color},
-    )
-
-
-@board_router.get("/singleplayer_hard", response_class=HTMLResponse, name="singleplayer_hard")
-async def singleplayer_hard(request: Request, color: str = "white"):
-    board_id = str(uuid.uuid4())
-    return templates.TemplateResponse(
-        "singleplayer.html",
-        {"request": request, "board_id": board_id, "player_color": color},
-    )
-
-
 @board_router.get("/api/board/{board_id}", response_model=BoardState)
 async def api_get_board(board_id: str):
     board = await get_board_state(board_id)

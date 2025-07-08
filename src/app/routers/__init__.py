@@ -5,7 +5,6 @@ from src.app.routers.profile_router import profile_router
 from src.app.routers.board_router import board_router
 from src.app.routers.waiting_router import waiting_router
 from src.app.routers.ws_router import ws_router
-from src.app.routers.single_router import single_router
 
 
 
@@ -19,6 +18,5 @@ __all__ = [
     'board_router',
     'waiting_router',
     'ws_router',
-    'single_router',
 ]
 
