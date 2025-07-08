@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('draws').textContent = data.draws;
             document.getElementById('losses').textContent = data.losses;
             document.getElementById('total-games').textContent = data.total_games;
+            document.getElementById('elo').textContent = data.elo;
+            document.getElementById('rank').textContent = data.rank;
             statsChart.data.datasets[0].data = [data.wins, data.draws, data.losses];
             statsChart.update();
         } catch (e) {

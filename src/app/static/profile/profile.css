@@ -117,7 +117,7 @@ body {
 }
 .stats-wrapper {
     display: flex;
-    gap: 100px;
+    gap: 60px;
     width: 100%;
     max-width: 960px;
 }
@@ -131,8 +131,36 @@ body {
 .right-panel {
     flex: 1;
     max-width: 260px;
-    margin-left: 100px;
 }
+
+.middle-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rank-card {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 24px 32px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rank-card .elo {
+    font-size: 2rem;
+    color: var(--accent-color);
+}
+
+.rank-card .rank {
+    font-size: 1.1rem;
+    color: var(--secondary-text-color);
+}
+
 .user-card {
     display: flex;
     flex-direction: column;

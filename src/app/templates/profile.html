@@ -52,8 +52,8 @@
         <div class="stats-wrapper">
             <div class="left-panel">
                 <div class="user-card">
-                    <div class="avatar">{{ user_id|string|first|upper }}</div>
-                    <h1 class="username">{{ user_id }}</h1>
+                    <div class="avatar">{{ username|string|first|upper }}</div>
+                    <h1 class="username">{{ username }}</h1>
                 </div>
                 <div class="stat-card total">
                     <div class="value" id="total-games">0</div>
@@ -72,6 +72,12 @@
                         <div class="value" id="losses">0</div>
                         <div class="label">Поражения</div>
                     </div>
+                </div>
+            </div>
+            <div class="middle-panel">
+                <div class="rank-card">
+                    <div class="elo" id="elo">0</div>
+                    <div class="rank" id="rank">Новичок</div>
                 </div>
             </div>
             <div class="right-panel">

@@ -1,7 +1,7 @@
 from fastapi import Request, APIRouter, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from src.settings.settings import templates
-from src.base.postgres import get_user_stats
+from src.base.postgres import get_user_stats, get_user_login
 
 profile_router = APIRouter()
 
@@ -11,7 +11,10 @@ async def profile(request: Request):
     if not user_id:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-    return templates.TemplateResponse("profile.html", {"request": request, "user_id": user_id})
+    username = await get_user_login(int(user_id))
+    return templates.TemplateResponse(
+        "profile.html", {"request": request, "username": username or str(user_id)}
+    )
 
 @profile_router.get("/api/stats")
 async def api_stats(request: Request):
