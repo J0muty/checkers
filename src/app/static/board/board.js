@@ -5,6 +5,12 @@ const timer2 = document.getElementById('timer2');
 const player1 = document.querySelector('.player1');
 const player2 = document.querySelector('.player2');
 const returnButton = document.getElementById('returnButton');
+const resignModal = document.getElementById('resignModal');
+const confirmResignBtn = document.getElementById('confirmResignBtn');
+const cancelResignBtn = document.getElementById('cancelResignBtn');
+const drawOfferModal = document.getElementById('drawOfferModal');
+const acceptDrawBtn = document.getElementById('acceptDrawBtn');
+const declineDrawBtn = document.getElementById('declineDrawBtn');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 const myColor = typeof playerColor !== 'undefined' && playerColor ? playerColor : null;
@@ -29,9 +35,18 @@ let multiCapture = false;
 let viewingHistory = false;
 let forcedPieces = [];
 let viewedMoveIndex = 0;
+let isPerformingAutoMove = false;
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function showModal(m) {
+    m.classList.add('active');
+}
+
+function hideModal(m) {
+    m.classList.remove('active');
 }
 
 function withinBounds(r, c) {
@@ -102,20 +117,25 @@ function computeForcedPieces() {
 }
 
 async function autoMoveIfSingle() {
-    if (viewingHistory || gameOver) return;
+    if (viewingHistory || gameOver || isPerformingAutoMove) return;
     if (myColor && turn !== myColor) return;
+
     if (forcedPieces.length === 1 && forcedPieces[0].moves.length === 1) {
-        const fp = forcedPieces[0];
-        selected = { row: fp.row, col: fp.col, isCapture: true };
-        possibleMoves = fp.moves;
-        renderBoard();
-        await delay(300);
-        await performMove(fp.row, fp.col, fp.moves[0][0], fp.moves[0][1], true);
+        isPerformingAutoMove = true;
+        try {
+            const fp = forcedPieces[0];
+            selected = { row: fp.row, col: fp.col, isCapture: true };
+            possibleMoves = fp.moves;
+            renderBoard();
+            await delay(300);
+            await performMove(fp.row, fp.col, fp.moves[0][0], fp.moves[0][1], true);
+        } finally {
+            isPerformingAutoMove = false;
+        }
     }
 }
 
-async function fetchBoard() {
-    const data = await (await fetch(`/api/board/${boardId}`)).json();
+async function handleUpdate(data) {
     boardState = data.board;
     timers = data.timers;
     timerStart = Date.now();
@@ -128,7 +148,23 @@ async function fetchBoard() {
     startTimers();
     computeForcedPieces();
     renderBoard();
-    await autoMoveIfSingle();
+
+    if (!isPerformingAutoMove) {
+        await autoMoveIfSingle();
+    }
+
+    if (data.status) {
+        if (data.status === 'white_win') alert('Белые победили!');
+        else if (data.status === 'black_win') alert('Чёрные победили!');
+        else if (data.status === 'draw') alert('Ничья!');
+        gameOver = true;
+        window.location.href = '/';
+    }
+}
+
+async function fetchBoard() {
+    const data = await (await fetch(`/api/board/${boardId}`)).json();
+    await handleUpdate(data);
 }
 
 async function fetchMoves(r, c) {
@@ -149,7 +185,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             start: [startR, startC],
-            end:   [endR, endC],
+            end: [endR, endC],
             player: turn
         })
     });
@@ -159,14 +195,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         return;
     }
 
-    boardState = data.board;
-    timers = data.timers;
-    timerStart = Date.now();
-    turn = data.timers.turn;
-    viewedMoveIndex = data.history.length;
-    updateHistory(data.history);
-    setActivePlayer(turn);
-    startTimers();
+    await handleUpdate(data);
 
     if (isCapture) {
         const nextCaps = await fetchCaptures(endR, endC);
@@ -175,6 +204,7 @@ async function performMove(startR, startC, endR, endC, isCapture) {
             possibleMoves = nextCaps;
             renderBoard();
             await delay(300);
+
             await performMove(endR, endC, nextCaps[0][0], nextCaps[0][1], true);
             return;
         } else if (nextCaps.length > 0) {
@@ -185,23 +215,12 @@ async function performMove(startR, startC, endR, endC, isCapture) {
             return;
         }
     }
-
     multiCapture = false;
     selected = null;
     possibleMoves = [];
-    computeForcedPieces();
     renderBoard();
     await autoMoveIfSingle();
-
-    if (data.status) {
-        if (data.status === 'white_win')      alert('Белые победили!');
-        else if (data.status === 'black_win') alert('Чёрные победили!');
-        else if (data.status === 'draw')      alert('Ничья!');
-        gameOver = true;
-        window.location.href = '/';
-    }
 }
-
 
 function renderBoard() {
     boardElement.innerHTML = '';
@@ -211,7 +230,6 @@ function renderBoard() {
             cell.classList.add('square');
             cell.dataset.row = row;
             cell.dataset.col = col;
-
             if (row === 0 || row === 9) {
                 cell.classList.add('label', row === 0 ? 'label-top' : 'label-bottom');
                 cell.textContent = letters[col];
@@ -223,7 +241,6 @@ function renderBoard() {
                 const c = col - 1;
                 const [br, bc] = toBoardCoords(r, c);
                 cell.classList.add((r + c) % 2 ? 'dark' : 'light');
-
                 if (selected && selected.row === br && selected.col === bc) {
                     cell.classList.add('selected');
                 }
@@ -233,18 +250,21 @@ function renderBoard() {
                 if (forcedPieces.some(p => p.row === br && p.col === bc)) {
                     cell.classList.add('forced');
                 }
-
                 const piece = boardState[br][bc];
                 if (piece) {
                     const p = document.createElement('div');
                     p.classList.add('piece', piece.toLowerCase() === 'w' ? 'white' : 'black');
-                    if (piece === piece.toUpperCase()) p.classList.add('king');
+                    if (
+                        piece === piece.toUpperCase() ||
+                        (piece.toLowerCase() === 'w' && br === 0) ||
+                        (piece.toLowerCase() === 'b' && br === 7)
+                    ) {
+                        p.classList.add('king');
+                    }
                     cell.appendChild(p);
                 }
-
                 cell.addEventListener('click', onCellClick);
             }
-
             boardElement.appendChild(cell);
         }
     }
@@ -253,21 +273,16 @@ function renderBoard() {
 async function onCellClick(e) {
     if (gameOver || viewingHistory) return;
     if (myColor && turn !== myColor) return;
-
     const row = +e.currentTarget.dataset.row;
     const col = +e.currentTarget.dataset.col;
     if (row === 0 || row === 9 || col === 0 || col === 9) return;
-
     const rDisplay = row - 1;
     const cDisplay = col - 1;
     const [r, c] = toBoardCoords(rDisplay, cDisplay);
-
     if (multiCapture && !possibleMoves.some(m => m[0] === r && m[1] === c)) {
         return;
     }
-
     const piece = boardState[r][c];
-
     if (!selected) {
         if (forcedPieces.length && !forcedPieces.some(p => p.row === r && p.col === c)) {
             return;
@@ -286,13 +301,11 @@ async function onCellClick(e) {
         renderBoard();
         return;
     }
-
     if (possibleMoves.some(m => m[0] === r && m[1] === c)) {
         const prev = selected;
         await performMove(prev.row, prev.col, r, c, prev.isCapture);
         return;
     }
-
     if (!multiCapture) {
         selected = null;
         possibleMoves = [];
@@ -384,8 +397,97 @@ function startTimers() {
     timerInterval = setInterval(updateTimerDisplay, 1000);
 }
 
+function buildWsUrl() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${proto}://${location.host}/ws/board/${boardId}`;
+}
+
+function setupWebSocket() {
+    const ws = new WebSocket(buildWsUrl());
+    ws.addEventListener('message', async (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === 'draw_offer') {
+            if (data.from !== myColor) {
+                showModal(drawOfferModal);
+            }
+        } else if (data.type === 'draw_declined') {
+            alert('Предложение ничьи отклонено');
+        } else {
+            await handleUpdate(data);
+        }
+    });
+    ws.addEventListener('close', () => {
+        setTimeout(setupWebSocket, 1000);
+    });
+}
+
 fetchBoard();
+setupWebSocket();
 
 returnButton.addEventListener('click', () => {
     fetchBoard();
 });
+
+const menuToggle = document.querySelector('.menu-toggle');
+const rightSidebar = document.querySelector('.right-sidebar');
+menuToggle.addEventListener('click', e => {
+    e.stopPropagation();
+    rightSidebar.classList.toggle('open');
+});
+rightSidebar.addEventListener('click', e => {
+    e.stopPropagation();
+});
+document.addEventListener('click', () => {
+    if (rightSidebar.classList.contains('open')) {
+        rightSidebar.classList.remove('open');
+    }
+});
+document.getElementById('menuHome').addEventListener('click', () => {
+    window.location.href = '/';
+});
+
+document.getElementById('menuResign').addEventListener('click', () => {
+    rightSidebar.classList.remove('open');
+    showModal(resignModal);
+});
+
+confirmResignBtn.addEventListener('click', async () => {
+    hideModal(resignModal);
+    const res = await fetch(`/api/resign/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor })
+    });
+    if (res.ok) {
+        const data = await res.json();
+        await handleUpdate(data);
+    }
+});
+
+cancelResignBtn.addEventListener('click', () => hideModal(resignModal));
+
+document.getElementById('menuDraw').addEventListener('click', async () => {
+    rightSidebar.classList.remove('open');
+    const res = await fetch(`/api/draw_offer/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor })
+    });
+    if (res.ok) alert('Предложение отправлено');
+});
+
+acceptDrawBtn.addEventListener('click', () => respondDraw(true));
+declineDrawBtn.addEventListener('click', () => respondDraw(false));
+
+async function respondDraw(accept) {
+    hideModal(drawOfferModal);
+    const res = await fetch(`/api/draw_response/${boardId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player: myColor, accept })
+    });
+    if (res.ok && accept) {
+        const data = await res.json();
+        await handleUpdate(data);
+    }
+}

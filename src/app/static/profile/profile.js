@@ -23,19 +23,26 @@ document.addEventListener('DOMContentLoaded', () => {
         updateChartColors();
     });
 
-    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-    const winsVal = rand(0, 20);
-    const drawsVal = rand(0, 20);
-    const lossesVal = rand(0, 20);
-    const totalVal = winsVal + drawsVal + lossesVal;
-
-    document.getElementById('wins').textContent = winsVal;
-    document.getElementById('draws').textContent = drawsVal;
-    document.getElementById('losses').textContent = lossesVal;
-    document.getElementById('total-games').textContent = totalVal;
-
     const ctx = document.getElementById('stats-chart').getContext('2d');
     let statsChart = createChart(ctx);
+
+    async function loadStats() {
+        try {
+            const res = await fetch('/api/stats');
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('wins').textContent = data.wins;
+            document.getElementById('draws').textContent = data.draws;
+            document.getElementById('losses').textContent = data.losses;
+            document.getElementById('total-games').textContent = data.total_games;
+            statsChart.data.datasets[0].data = [data.wins, data.draws, data.losses];
+            statsChart.update();
+        } catch (e) {
+            console.error('Failed to load stats', e);
+        }
+    }
+
+    loadStats();
 
     function createChart(ctx) {
         const root = getComputedStyle(document.documentElement);
@@ -44,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: ['Победы', 'Ничьи', 'Поражения'],
                 datasets: [{
-                    data: [winsVal, drawsVal, lossesVal],
+                    data: [0, 0, 0],
                     backgroundColor: [
                         root.getPropertyValue('--accent-color').trim(),
                         root.getPropertyValue('--button-color').trim(),

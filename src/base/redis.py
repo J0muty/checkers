@@ -17,9 +17,11 @@ REDIS_KEY_PREFIX = "board"
 USER_BOARD_KEY_PREFIX = "user_board"
 HISTORY_KEY_PREFIX = "history"
 TIMER_KEY_PREFIX = "timer"
+PLAYERS_KEY = "players"
+DRAW_OFFER_KEY_PREFIX = "draw_offer"
 DEFAULT_TIME = 600
 WAITING_KEY = "waiting_user"
-COLOR_KEY_PREFIX = "color"
+WAITING_TIME_PREFIX = "waiting_time"
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +52,15 @@ async def save_board_state(board_id: str, board):
 async def assign_user_board(username: str, board_id: str):
     key = f"{USER_BOARD_KEY_PREFIX}:{username}"
     await redis_client.set(key, board_id)
+
+async def set_board_players(board_id: str, players: dict):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{PLAYERS_KEY}"
+    await redis_client.set(key, json.dumps(players))
+
+async def get_board_players(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{PLAYERS_KEY}"
+    raw = await redis_client.get(key)
+    return json.loads(raw) if raw else None
 
 async def get_user_board(username: str):
     key = f"{USER_BOARD_KEY_PREFIX}:{username}"
@@ -141,29 +152,63 @@ async def get_board_state_at(board_id: str, index: int):
     return board
 
 async def add_to_waiting(username: str):
-    """Put user into waiting queue or pair with existing player."""
     waiting = await redis_client.get(WAITING_KEY)
     if waiting and waiting != username:
         board_id = str(uuid.uuid4())
         await redis_client.delete(WAITING_KEY)
+        await redis_client.delete(f"{WAITING_TIME_PREFIX}:{waiting}")
         await assign_user_board(waiting, board_id)
         await assign_user_board(username, board_id)
-        await redis_client.set(f"{COLOR_KEY_PREFIX}:{waiting}", "white")
-        await redis_client.set(f"{COLOR_KEY_PREFIX}:{username}", "black")
+        await set_board_players(board_id, {"white": waiting, "black": username})
         return board_id, "black"
+    if waiting == username:
+        return None, None
     await redis_client.set(WAITING_KEY, username)
+    await redis_client.set(f"{WAITING_TIME_PREFIX}:{username}", time.time())
     return None, None
 
 async def check_waiting(username: str):
     board_id = await get_user_board(username)
     if board_id:
-        color = await redis_client.get(f"{COLOR_KEY_PREFIX}:{username}")
-        return board_id, color
+        players = await get_board_players(board_id)
+        if players:
+            color = "white" if players.get("white") == username else "black"
+            return board_id, color
+        else:
+            await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
     return None, None
+
+async def get_waiting_time(username: str):
+    key = f"{WAITING_TIME_PREFIX}:{username}"
+    ts = await redis_client.get(key)
+    return float(ts) if ts else None
 
 async def cancel_waiting(username: str):
     waiting = await redis_client.get(WAITING_KEY)
     if waiting == username:
         await redis_client.delete(WAITING_KEY)
-    await redis_client.delete(f"{COLOR_KEY_PREFIX}:{username}")
+        await redis_client.delete(f"{WAITING_TIME_PREFIX}:{username}")
     await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
+
+
+async def cleanup_board(board_id: str):
+    players = await get_board_players(board_id) or {}
+    for user in players.values():
+        await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{user}")
+    keys = await redis_client.keys(f"{REDIS_KEY_PREFIX}:{board_id}:*")
+    if keys:
+        await redis_client.delete(*keys)
+
+async def set_draw_offer(board_id: str, player: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    await redis_client.set(key, player)
+
+
+async def get_draw_offer(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    return await redis_client.get(key)
+
+
+async def clear_draw_offer(board_id: str):
+    key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
+    await redis_client.delete(key)

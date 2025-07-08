@@ -9,13 +9,52 @@
 {% block content %}
 <div class="home-wrapper">
     <div class="home-grid">
-        <a class="btn" href="{{ url_for('board') }}">Single Player</a>
-        <a class="btn" href="{{ url_for('waiting') }}">Multiplayer</a>
-        <a class="btn" href="{{ url_for('home') }}">Friends</a>
+        <button id="singleBtn" class="btn" type="button">Одиночная игра</button>
+        <a class="btn" href="{{ url_for('waiting') }}">Сетевая игра</a>
+        <a class="btn" href="{{ url_for('home') }}">Друзья</a>
+    </div>
+        <div class="status-box" id="statusBox">
+        <div class="timer" id="statusTimer">00:00</div>
+        <button id="statusReturn">Вернуться</button>
+        <button id="statusLeave">Покинуть</button>
+    </div>
+</div>
+<div id="leaveModal" class="modal-overlay">
+    <div class="modal">
+        <p>Вы уверены, что хотите покинуть игру?</p>
+        <div class="modal-buttons">
+            <button id="leaveYes" class="btn-red">Да</button>
+            <button id="leaveNo" class="btn-green">Нет</button>
+        </div>
+    </div>
+</div>
+<div id="singleModal" class="modal-overlay">
+    <div class="modal">
+        <p>Выберите сложность и цвет</p>
+        <div class="modal-options">
+            <fieldset>
+                <legend>Сложность</legend>
+                <label><input type="radio" name="difficulty" value="easy" checked> Легко</label>
+                <label><input type="radio" name="difficulty" value="medium"> Средне</label>
+                <label><input type="radio" name="difficulty" value="hard"> Сложно</label>
+            </fieldset>
+            <fieldset>
+                <legend>Цвет</legend>
+                <label><input type="radio" name="spcolor" value="white" checked> Белый</label>
+                <label><input type="radio" name="spcolor" value="black"> Черный</label>
+            </fieldset>
+        </div>
+        <div class="modal-buttons">
+            <button id="startSingleBtn" class="btn">Начать игру</button>
+            <button id="singleCloseBtn" class="btn">Отменить</button>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    const userId = "{{ user_id }}";
+</script>
 <script src="/static/home/home.js"></script>
 {% endblock %}
