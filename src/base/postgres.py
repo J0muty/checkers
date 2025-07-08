@@ -77,7 +77,7 @@ async def create_user(
     user = User(login=login_norm, email=email_norm, password=pwd_hash)
     session.add(user)
     await session.commit()
-    session.add(UserStats(user_id=user.id, elo=0, rang="Новичок"))
+    session.add(UserStats(user_id=user.id, elo=0, rank="Новичок"))
     await session.commit()
     return user
 
@@ -92,7 +92,7 @@ async def record_game_result(user_id: int, result: str, opponent_elo: int, sessi
             draws=0,
             losses=0,
             elo=0,
-            rang="Новичок",
+            rank="Новичок",
         )
         session.add(stats)
 
@@ -108,7 +108,7 @@ async def record_game_result(user_id: int, result: str, opponent_elo: int, sessi
         raise ValueError(f"Unknown result type: {result}")
 
     stats.elo = update_elo(stats.elo or 0, opponent_elo, result)
-    stats.rang = calculate_rank(stats.elo)
+    stats.rank = calculate_rank(stats.elo)
 
     await session.commit()
 
@@ -143,7 +143,7 @@ async def get_user_stats(user_id: int, session: AsyncSession) -> dict:
             "draws": 0,
             "losses": 0,
             "elo": 0,
-            "rang": calculate_rank(0),
+            "rank": calculate_rank(0),
         }
     return {
         "total_games": stats.total_games or 0,
@@ -151,5 +151,5 @@ async def get_user_stats(user_id: int, session: AsyncSession) -> dict:
         "draws": stats.draws or 0,
         "losses": stats.losses or 0,
         "elo": stats.elo or 0,
-        "rang": stats.rang,
+        "rank": stats.rank,
     }

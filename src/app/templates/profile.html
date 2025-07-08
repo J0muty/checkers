@@ -2,15 +2,18 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Главная</title>
+    <title>Профиль</title>
     <script>
         if (localStorage.theme === 'dark') {
             document.documentElement.classList.add('dark-mode');
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/profile/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header class="topbar">
@@ -23,7 +26,7 @@
                 <i class="fa-solid fa-arrow-left"></i>
                 <span>Вернуться</span>
             </a>
-            <button id="sidebarClose" class="btn-icon"><i class="fa-solid fa-minus"></i></button>
+            <button id="sidebarClose" class="btn-icon"><i class="fa-solid fa-times"></i></button>
         </div>
         <nav class="sidebar-nav">
             <a href="/" class="nav-item">
@@ -74,18 +77,21 @@
                     </div>
                 </div>
             </div>
-            <div class="middle-panel">
-                <div class="rank-card">
-                    <div class="elo" id="elo">0</div>
-                    <div class="rank" id="rank">Новичок</div>
-                </div>
-            </div>
             <div class="right-panel">
-                <canvas id="stats-chart"></canvas>
+                <div class="stat-card rank-card">
+                    <i class="fa-solid fa-award rank-icon"></i>
+                    <div>
+                        <div class="value" id="rank">Новичок</div>
+                        <div class="label">Ранг</div>
+                    </div>
+                </div>
+                <div class="stat-card elo-card">
+                    <div class="value" id="elo">0</div>
+                    <div class="label">ELO</div>
+                </div>
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/profile/profile.js"></script>
 </body>
 </html>
