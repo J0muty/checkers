@@ -87,7 +87,7 @@ async def board_page(request: Request, board_id: str):
 async def singleplayer_easy(request: Request, color: str = "white"):
     board_id = str(uuid.uuid4())
     return templates.TemplateResponse(
-        "board.html",
+        "singleplayer.html",
         {"request": request, "board_id": board_id, "player_color": color},
     )
 
@@ -96,7 +96,7 @@ async def singleplayer_easy(request: Request, color: str = "white"):
 async def singleplayer_medium(request: Request, color: str = "white"):
     board_id = str(uuid.uuid4())
     return templates.TemplateResponse(
-        "board.html",
+        "singleplayer.html",
         {"request": request, "board_id": board_id, "player_color": color},
     )
 
@@ -105,7 +105,7 @@ async def singleplayer_medium(request: Request, color: str = "white"):
 async def singleplayer_hard(request: Request, color: str = "white"):
     board_id = str(uuid.uuid4())
     return templates.TemplateResponse(
-        "board.html",
+        "singleplayer.html",
         {"request": request, "board_id": board_id, "player_color": color},
     )
 

@@ -15,7 +15,9 @@
         const boardId = "{{ board_id }}";
         const playerColor = "{{ player_color }}";
     </script>
+    {% block board_script %}
     <script src="/static/board/board.js" defer></script>
+    {% endblock %}
 </head>
 <body>
     <div class="game-container">
