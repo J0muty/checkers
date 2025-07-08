@@ -5,6 +5,10 @@ const leaveBtn = document.getElementById('statusLeave');
 const modal = document.getElementById('leaveModal');
 const leaveYes = document.getElementById('leaveYes');
 const leaveNo = document.getElementById('leaveNo');
+const singleBtn = document.getElementById('singleBtn');
+const singleModal = document.getElementById('singleModal');
+const singleCloseBtn = document.getElementById('singleCloseBtn');
+const startSingleBtn = document.getElementById('startSingleBtn');
 
 let timerInterval = null;
 let waitingWs = null;
@@ -147,4 +151,17 @@ async function updateStatus() {
 
 document.addEventListener('DOMContentLoaded', () => {
     updateStatus();
+    if (singleBtn) {
+        singleBtn.addEventListener('click', () => {
+            singleModal.classList.add('active');
+        });
+        singleCloseBtn.addEventListener('click', () => {
+            singleModal.classList.remove('active');
+        });
+        startSingleBtn.addEventListener('click', () => {
+            const diff = document.querySelector('input[name="difficulty"]:checked').value;
+            const color = document.querySelector('input[name="spcolor"]:checked').value;
+            window.location.href = `/singleplayer_${diff}?color=${color}`;
+        });
+    }
 });

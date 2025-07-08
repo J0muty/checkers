@@ -149,7 +149,6 @@ async function handleUpdate(data) {
     computeForcedPieces();
     renderBoard();
 
-    // Вызываем только если еще не выполняется автоматический ход
     if (!isPerformingAutoMove) {
         await autoMoveIfSingle();
     }
@@ -196,7 +195,6 @@ async function performMove(startR, startC, endR, endC, isCapture) {
         return;
     }
 
-    // Обновляем состояние перед следующим автоматическим ходом
     await handleUpdate(data);
 
     if (isCapture) {
@@ -207,7 +205,6 @@ async function performMove(startR, startC, endR, endC, isCapture) {
             renderBoard();
             await delay(300);
 
-            // Выполняем следующий захват уже с актуальным состоянием
             await performMove(endR, endC, nextCaps[0][0], nextCaps[0][1], true);
             return;
         } else if (nextCaps.length > 0) {
