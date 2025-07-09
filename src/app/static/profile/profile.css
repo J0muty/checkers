@@ -114,6 +114,10 @@ html, body {
     background: var(--accent-color);
 }
 
+.nav-item.active {
+    background: var(--accent-color);
+}
+
 .profile-content {
     padding: 80px 16px 32px;
     display: grid;

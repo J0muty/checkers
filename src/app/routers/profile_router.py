@@ -16,6 +16,21 @@ async def profile(request: Request):
         "profile.html", {"request": request, "username": username or str(user_id)}
     )
 
+@profile_router.get("/friends", response_class=HTMLResponse, name="friends")
+async def friends(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("friends.html", {"request": request})
+
+
+@profile_router.get("/settings", response_class=HTMLResponse, name="settings")
+async def settings(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("settings.html", {"request": request})
+
 @profile_router.get("/api/stats")
 async def api_stats(request: Request):
     user_id = request.session.get("user_id")

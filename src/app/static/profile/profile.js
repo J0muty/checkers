@@ -40,5 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
         themeIcon.classList.toggle('fa-moon');
         themeIcon.classList.toggle('fa-sun');
     });
-    loadStats();
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('href') === window.location.pathname) {
+            item.classList.add('active');
+        }
+    });
+
+    if (document.getElementById('total-games')) {
+        loadStats();
+    }
 });
