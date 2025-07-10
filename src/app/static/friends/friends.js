@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsList = document.getElementById('results-list');
     const resultsBlock = document.getElementById('results');
     const friendTemplate = document.getElementById('friend-item-template');
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatList = document.getElementById('chat-list');
 
     function showNotification(message, duration = 2500) {
         let container = document.querySelector('.toast-container');
@@ -33,6 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.addEventListener('click', e => {
         if (!e.target.closest('.menu-wrapper')) closeAllDropdowns();
+        if (chatPanel.classList.contains('open') &&
+            !e.target.closest('#chat-panel') &&
+            !e.target.closest('#chat-toggle')) {
+            chatPanel.classList.remove('open');
+        }
     });
 
     async function loadFriends() {
@@ -150,6 +158,34 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to search users:', err);
         }
     }
+
+    async function loadChats() {
+        try {
+            const res = await fetch('/api/chats');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            chatList.innerHTML = '';
+            data.chats.forEach(c => {
+                const li = document.createElement('li');
+                li.textContent = c.title;
+                li.addEventListener('click', () => location.href = `/messages/${c.id}`);
+                chatList.appendChild(li);
+            });
+        } catch (err) {
+            console.error('Failed to load chats:', err);
+        }
+    }
+
+    chatToggle.addEventListener('click', () => {
+        const isOpen = chatPanel.classList.contains('open');
+        if (isOpen) {
+            chatPanel.classList.remove('open');
+        } else {
+            chatPanel.classList.add('open');
+            loadChats();
+        }
+    });
 
     searchInput.addEventListener('input', () => {
         const q = searchInput.value.trim();
