@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput   = document.getElementById('friend-search');
-    const friendsList   = document.getElementById('friends-list');
-    const requestsList  = document.getElementById('requests-list');
+    const searchInput = document.getElementById('friend-search');
+    const friendsList = document.getElementById('friends-list');
+    const requestsList = document.getElementById('requests-list');
     const requestsBlock = document.getElementById('requests');
-    const friendsBlock  = document.getElementById('friends');
-    const resultsList   = document.getElementById('results-list');
-    const resultsBlock  = document.getElementById('results');
+    const friendsBlock = document.getElementById('friends');
+    const resultsList = document.getElementById('results-list');
+    const resultsBlock = document.getElementById('results');
+    const friendTemplate = document.getElementById('friend-item-template');
 
     function showNotification(message, duration = 2500) {
         let container = document.querySelector('.toast-container');
@@ -27,6 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.showNotification = showNotification;
 
+    function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.menu-wrapper')) closeAllDropdowns();
+    });
+
     async function loadFriends() {
         try {
             const res = await fetch('/api/friends');
@@ -35,26 +43,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
             friendsList.innerHTML = '';
             data.friends.forEach(u => {
-                const li = document.createElement('li');
-                li.textContent = u.login;
+                const li = friendTemplate.content.firstElementChild.cloneNode(true);
+                li.querySelector('.friend-name').textContent = u.login;
 
-                const btnRemove = document.createElement('button');
-                btnRemove.className = 'icon-btn';
-                btnRemove.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                btnRemove.title = 'Удалить';
+                const dropdown = li.querySelector('.dropdown');
+                const btnMsg = dropdown.querySelector('.msg');
+                const btnRemove = dropdown.querySelector('.remove');
+                const btnBlock = dropdown.querySelector('.block');
+
+                btnMsg.addEventListener('click', () => {
+                    location.href = `/messages/${u.id}`;
+                });
+
                 btnRemove.addEventListener('click', async () => {
                     await fetch(`/api/friend_request?to_id=${u.id}&action=remove`, { method: 'POST' });
                     showNotification('Удалён из друзей');
                     loadFriends();
                 });
 
-                li.appendChild(btnRemove);
+                btnBlock.addEventListener('click', async () => {
+                    await fetch(`/api/friend_request?to_id=${u.id}&action=block`, { method: 'POST' });
+                    showNotification('Пользователь заблокирован');
+                    loadFriends();
+                });
+
+                const menuBtn = li.querySelector('.menu-btn');
+                menuBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const alreadyOpen = dropdown.classList.contains('open');
+                    closeAllDropdowns();
+                    if (!alreadyOpen) dropdown.classList.add('open');
+                });
+
                 friendsList.appendChild(li);
             });
 
             requestsList.innerHTML = '';
             const incoming = data.requests.incoming;
-
             if (incoming.length) {
                 requestsBlock.style.display = 'block';
                 incoming.forEach(u => {
@@ -129,12 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', () => {
         const q = searchInput.value.trim();
         if (q) {
-            friendsBlock.style.display  = 'none';
+            friendsBlock.style.display = 'none';
             requestsBlock.style.display = 'none';
             searchUsers(q);
         } else {
-            resultsBlock.style.display  = 'none';
-            friendsBlock.style.display  = 'block';
+            resultsBlock.style.display = 'none';
+            friendsBlock.style.display = 'block';
             loadFriends();
         }
     });
@@ -146,16 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupWebSocket() {
         const ws = new WebSocket(buildWsUrl());
-        ws.addEventListener('message', () => {
-            loadFriends();
-        });
-        ws.addEventListener('close', () => {
-            setTimeout(setupWebSocket, 1000);
-        });
+        ws.addEventListener('message', () => loadFriends());
+        ws.addEventListener('close', () => setTimeout(setupWebSocket, 1000));
     }
 
     loadFriends();
-    if (typeof userId !== 'undefined') {
-        setupWebSocket();
-    }
+    if (typeof userId !== 'undefined') setupWebSocket();
 });

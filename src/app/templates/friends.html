@@ -23,6 +23,22 @@
             <ul id="friends-list"></ul>
         </div>
     </div>
+
+    <template id="friend-item-template">
+        <li>
+            <span class="friend-name"></span>
+            <div class="menu-wrapper">
+                <button class="icon-btn menu-btn">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="dropdown">
+                    <div class="dropdown-item msg"><i class="fa-solid fa-comment-dots"></i> Написать</div>
+                    <div class="dropdown-item remove"><i class="fa-solid fa-trash"></i> Удалить</div>
+                    <div class="dropdown-item block"><i class="fa-solid fa-ban"></i> Заблокировать</div>
+                </div>
+            </div>
+        </li>
+    </template>
 {% endblock %}
 {% block extra_js %}
     <script>
