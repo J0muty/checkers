@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatList = document.getElementById('chat-list');
     const chatWindow = document.getElementById('chat-window');
     const chatTitle = document.getElementById('chat-title');
+    const chatBack = document.getElementById('chat-back');
 
     function showNotification(message, duration = 2500) {
         let container = document.querySelector('.toast-container');
@@ -61,13 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btnRemove = dropdown.querySelector('.remove');
                 const btnBlock = dropdown.querySelector('.block');
 
-                btnMsg.addEventListener('click', () => {
+                btnMsg.addEventListener('click', e => {
+                    e.stopPropagation();
                     closeAllDropdowns();
                     chatPanel.classList.add('open');
                     window.chatModule.open(u.id);
                     chatTitle.textContent = u.login;
                     chatWindow.classList.add('open');
                     chatList.style.display = 'none';
+                    chatBack.style.display = 'inline-block';
                 });
 
                 btnRemove.addEventListener('click', async () => {
@@ -181,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     chatWindow.classList.add('open');
                     chatList.style.display = 'none';
                     window.chatModule.open(c.id.split(':').find(id => id != userId));
+                    chatBack.style.display = 'inline-block';
                 });
                 chatList.appendChild(li);
             });
@@ -196,10 +200,19 @@ document.addEventListener('DOMContentLoaded', () => {
             chatWindow.classList.remove('open');
             chatList.style.display = 'block';
             chatTitle.textContent = 'Чаты';
+            chatBack.style.display = 'none';
         } else {
             chatPanel.classList.add('open');
             loadChats();
+            chatBack.style.display = 'none';
         }
+    });
+
+    chatBack.addEventListener('click', () => {
+        chatWindow.classList.remove('open');
+        chatList.style.display = 'block';
+        chatTitle.textContent = 'Чаты';
+        chatBack.style.display = 'none';
     });
 
     searchInput.addEventListener('input', () => {
