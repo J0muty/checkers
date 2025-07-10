@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatToggle = document.getElementById('chat-toggle');
     const chatPanel = document.getElementById('chat-panel');
     const chatList = document.getElementById('chat-list');
+    const chatWindow = document.getElementById('chat-window');
+    const chatTitle = document.getElementById('chat-title');
 
     function showNotification(message, duration = 2500) {
         let container = document.querySelector('.toast-container');
@@ -60,7 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btnBlock = dropdown.querySelector('.block');
 
                 btnMsg.addEventListener('click', () => {
-                    location.href = `/messages/${u.id}`;
+                    closeAllDropdowns();
+                    chatPanel.classList.add('open');
+                    window.chatModule.open(u.id);
+                    chatTitle.textContent = u.login;
+                    chatWindow.classList.add('open');
+                    chatList.style.display = 'none';
                 });
 
                 btnRemove.addEventListener('click', async () => {
@@ -169,7 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
             data.chats.forEach(c => {
                 const li = document.createElement('li');
                 li.textContent = c.title;
-                li.addEventListener('click', () => location.href = `/messages/${c.id}`);
+                li.addEventListener('click', () => {
+                    chatTitle.textContent = c.title;
+                    chatWindow.classList.add('open');
+                    chatList.style.display = 'none';
+                    window.chatModule.open(c.id.split(':').find(id => id != userId));
+                });
                 chatList.appendChild(li);
             });
         } catch (err) {
@@ -181,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOpen = chatPanel.classList.contains('open');
         if (isOpen) {
             chatPanel.classList.remove('open');
+            chatWindow.classList.remove('open');
+            chatList.style.display = 'block';
+            chatTitle.textContent = 'Чаты';
         } else {
             chatPanel.classList.add('open');
             loadChats();

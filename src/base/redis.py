@@ -23,6 +23,8 @@ DRAW_OFFER_KEY_PREFIX = "draw_offer"
 DEFAULT_TIME = 600
 WAITING_KEY = "waiting_user"
 WAITING_TIME_PREFIX = "waiting_time"
+CHAT_PREFIX = "chat"
+USER_CHATS_PREFIX = "user_chats"
 
 logger = logging.getLogger(__name__)
 
@@ -221,3 +223,31 @@ async def get_draw_offer(board_id: str):
 async def clear_draw_offer(board_id: str):
     key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
     await redis_client.delete(key)
+
+
+def _chat_id(user1: int, user2: int) -> str:
+    a, b = sorted([int(user1), int(user2)])
+    return f"{a}:{b}"
+
+
+async def save_chat_message(sender_id: int, receiver_id: int, text: str):
+    cid = _chat_id(sender_id, receiver_id)
+    msg = {"sender": sender_id, "text": text, "ts": time.time()}
+    await redis_client.rpush(f"{CHAT_PREFIX}:{cid}", json.dumps(msg))
+    await redis_client.sadd(f"{USER_CHATS_PREFIX}:{sender_id}", cid)
+    await redis_client.sadd(f"{USER_CHATS_PREFIX}:{receiver_id}", cid)
+    return cid, msg
+
+
+async def get_chat_messages(user1: int, user2: int, limit: int = 50):
+    cid = _chat_id(user1, user2)
+    key = f"{CHAT_PREFIX}:{cid}"
+    raw = await redis_client.lrange(key, -limit, -1)
+    msgs = [json.loads(m) for m in raw]
+    return cid, msgs
+
+
+async def get_user_chats(user_id: int) -> list[str]:
+    key = f"{USER_CHATS_PREFIX}:{user_id}"
+    ids = await redis_client.smembers(key)
+    return list(ids or [])

@@ -3,6 +3,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="/static/profile/profile.css">
     <link rel="stylesheet" href="/static/friends/friends.css">
+    <link rel="stylesheet" href="/static/chat/chat.css">
 {% endblock %}
 {% block content %}
     <div class="friends-wrapper">
@@ -45,8 +46,15 @@
     </button>
 
     <div id="chat-panel" class="chat-panel">
-        <h3>Чаты</h3>
+        <h3 id="chat-title">Чаты</h3>
         <ul id="chat-list"></ul>
+        <div id="chat-window" class="chat-window">
+            <div class="chat-messages"></div>
+            <form class="chat-form">
+                <input class="chat-input" autocomplete="off">
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
     </div>
 {% endblock %}
 {% block extra_js %}
@@ -55,4 +63,8 @@
     </script>
     <script src="/static/profile/profile.js"></script>
     <script src="/static/friends/friends.js"></script>
+    <script type="module">
+        import { initChat } from '/static/chat/chat.js';
+        window.chatModule = initChat(document.getElementById('chat-panel'), userId);
+    </script>
 {% endblock %}

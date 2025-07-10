@@ -1,5 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, List
+import json
+from src.base.redis import save_chat_message
 
 ws_router = APIRouter()
 
@@ -28,6 +30,7 @@ class ConnectionManager:
 board_manager = ConnectionManager()
 waiting_manager = ConnectionManager()
 friends_manager = ConnectionManager()
+chat_manager = ConnectionManager()
 
 @ws_router.websocket("/ws/board/{board_id}")
 async def websocket_board(websocket: WebSocket, board_id: str):
@@ -56,3 +59,23 @@ async def websocket_friends(websocket: WebSocket, user_id: str):
             await websocket.receive_text()
     except WebSocketDisconnect:
         friends_manager.disconnect(user_id, websocket)
+
+
+@ws_router.websocket("/ws/chat/{chat_id}")
+async def websocket_chat(websocket: WebSocket, chat_id: str):
+    await chat_manager.connect(chat_id, websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                payload = json.loads(data)
+                sender = int(payload.get("sender"))
+                receiver = int(payload.get("receiver"))
+                text = payload.get("text", "")
+            except Exception:
+                continue
+            await save_chat_message(sender, receiver, text)
+            msg = json.dumps({"sender": sender, "text": text})
+            await chat_manager.broadcast(chat_id, msg)
+    except WebSocketDisconnect:
+        chat_manager.disconnect(chat_id, websocket)
