@@ -23,8 +23,7 @@ DRAW_OFFER_KEY_PREFIX = "draw_offer"
 DEFAULT_TIME = 600
 WAITING_KEY = "waiting_user"
 WAITING_TIME_PREFIX = "waiting_time"
-CHAT_PREFIX = "chat"
-USER_CHATS_PREFIX = "user_chats"
+CHAT_PREFIX = "chats"
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +200,6 @@ async def cancel_waiting(username: str):
         await redis_client.delete(f"{WAITING_TIME_PREFIX}:{username}")
     await redis_client.delete(f"{USER_BOARD_KEY_PREFIX}:{username}")
 
-
 async def cleanup_board(board_id: str):
     players = await get_board_players(board_id) or {}
     for user in players.values():
@@ -214,40 +212,37 @@ async def set_draw_offer(board_id: str, player: str):
     key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
     await redis_client.set(key, player)
 
-
 async def get_draw_offer(board_id: str):
     key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
     return await redis_client.get(key)
-
 
 async def clear_draw_offer(board_id: str):
     key = f"{REDIS_KEY_PREFIX}:{board_id}:{DRAW_OFFER_KEY_PREFIX}"
     await redis_client.delete(key)
 
-
 def _chat_id(user1: int, user2: int) -> str:
     a, b = sorted([int(user1), int(user2)])
     return f"{a}:{b}"
-
 
 async def save_chat_message(sender_id: int, receiver_id: int, text: str):
     cid = _chat_id(sender_id, receiver_id)
     msg = {"sender": sender_id, "text": text, "ts": time.time()}
     await redis_client.rpush(f"{CHAT_PREFIX}:{cid}", json.dumps(msg))
-    await redis_client.sadd(f"{USER_CHATS_PREFIX}:{sender_id}", cid)
-    await redis_client.sadd(f"{USER_CHATS_PREFIX}:{receiver_id}", cid)
     return cid, msg
-
 
 async def get_chat_messages(user1: int, user2: int, limit: int = 50):
     cid = _chat_id(user1, user2)
-    key = f"{CHAT_PREFIX}:{cid}"
-    raw = await redis_client.lrange(key, -limit, -1)
+    raw = await redis_client.lrange(f"{CHAT_PREFIX}:{cid}", -limit, -1)
     msgs = [json.loads(m) for m in raw]
     return cid, msgs
 
-
-async def get_user_chats(user_id: int) -> list[str]:
-    key = f"{USER_CHATS_PREFIX}:{user_id}"
-    ids = await redis_client.smembers(key)
-    return list(ids or [])
+async def get_user_chats(user_id: int) -> List[str]:
+    pattern = f"{CHAT_PREFIX}:*"
+    keys = await redis_client.keys(pattern)
+    uid = str(int(user_id))
+    cids = []
+    for key in keys:
+        cid = key[len(CHAT_PREFIX) + 1:]
+        if uid in cid.split(":"):
+            cids.append(cid)
+    return cids
