@@ -26,3 +26,18 @@ class UserStats(Base):
     rank = Column("rang", String(50), default="Новичок")
 
     user = relationship("User", back_populates="stats")
+
+
+class Friend(Base):
+    __tablename__ = "friends"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    friend_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+
+
+class FriendRequest(Base):
+    __tablename__ = "friend_requests"
+
+    id = Column(Integer, primary_key=True)
+    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    to_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

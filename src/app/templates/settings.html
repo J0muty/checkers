@@ -21,13 +21,6 @@
         <button id="theme-toggle" class="btn-icon"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </header>
     <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <a href="/" class="back-link">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Вернуться</span>
-            </a>
-            <button id="sidebarClose" class="btn-icon"><i class="fa-solid fa-times"></i></button>
-        </div>
         <nav class="sidebar-nav">
             <a href="/" class="nav-item">
                 <i class="fa-solid fa-house"></i>
@@ -37,7 +30,7 @@
                 <i class="fa-solid fa-user"></i>
                 <span>Профиль</span>
             </a>
-            <a href="/friends" class="nav-item{% if request.url.path == '/friends' %} active{% endif %}">
+            <a href="/profile/friends" class="nav-item{% if request.url.path == '/profile/friends' %} active{% endif %}">
                 <i class="fa-solid fa-user-group"></i>
                 <span>Друзья</span>
             </a>

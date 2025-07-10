@@ -5,7 +5,7 @@
     <title>Друзья</title>
     <script>
         if (localStorage.theme === 'dark') {
-            document.documentElement.classList.add('dark-mode');
+            document.documentElement.classList.add('dark-mode')
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/profile/profile.css">
+    <link rel="stylesheet" href="/static/friends/friends.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -21,13 +22,6 @@
         <button id="theme-toggle" class="btn-icon"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </header>
     <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <a href="/" class="back-link">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Вернуться</span>
-            </a>
-            <button id="sidebarClose" class="btn-icon"><i class="fa-solid fa-times"></i></button>
-        </div>
         <nav class="sidebar-nav">
             <a href="/" class="nav-item">
                 <i class="fa-solid fa-house"></i>
@@ -37,7 +31,7 @@
                 <i class="fa-solid fa-user"></i>
                 <span>Профиль</span>
             </a>
-            <a href="/friends" class="nav-item{% if request.url.path == '/friends' %} active{% endif %}">
+            <a href="/profile/friends" class="nav-item{% if request.url.path == '/profile/friends' %} active{% endif %}">
                 <i class="fa-solid fa-user-group"></i>
                 <span>Друзья</span>
             </a>
@@ -52,9 +46,22 @@
         </nav>
     </aside>
     <main class="profile-content">
-        <h1>Друзья</h1>
-        <p>Раздел в разработке.</p>
+        <input id="friend-search" placeholder="Поиск" class="search-input">
+        <div id="requests" class="friends-section" style="display:none;">
+            <h2>Заявки</h2>
+            <ul id="requests-list"></ul>
+        </div>
+        <div id="friends" class="friends-section">
+            <h2>Друзья</h2>
+            <ul id="friends-list"></ul>
+        </div>
+        <div id="results" class="friends-section" style="display:none;">
+            <h2>Результаты</h2>
+            <ul id="results-list"></ul>
+        </div>
+        <div id="notification" class="notification" style="display:none;"></div>
     </main>
     <script src="/static/profile/profile.js"></script>
+    <script src="/static/friends/friends.js"></script>
 </body>
 </html>

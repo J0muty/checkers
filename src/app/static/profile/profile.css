@@ -76,22 +76,6 @@ html, body {
     left: 0;
 }
 
-.sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-}
-
-.back-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-color);
-    text-decoration: none;
-    font-size: 1rem;
-}
-
 .sidebar-nav {
     display: flex;
     flex-direction: column;
