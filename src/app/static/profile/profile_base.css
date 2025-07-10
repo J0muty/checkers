@@ -1,28 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap');
+
 :root {
-    --background-color: #F6F8FB;
-    --surface-color: #FFFFFF;
-    --accent-color: #4F8CFF;
-    --button-color: #2464DB;
-    --text-color: #181A20;
-    --secondary-text-color: #7D8193;
-    --font-family: 'Inter', sans-serif;
+    --background-color: #f3f4f6;
+    --surface-color: #ffffff;
+    --accent-color: #3B82F6;
+    --button-color: #2563EB;
+    --text-color: #111827;
+    --secondary-text-color: #6B7280;
+    --font-family: 'Rubik', sans-serif;
     --border-radius: 12px;
 }
-
 .dark-mode {
-    --background-color: #181A20;
-    --surface-color: #22232B;
-    --button-color: #0057fa;
-    --text-color: #FFFFFF;
-    --secondary-text-color: #A3A6B7;
+    --background-color: #1F2937;
+    --surface-color: #111827;
+    --button-color: #1E40AF;
+    --text-color: #F9FAFB;
+    --secondary-text-color: #9CA3AF;
+    --accent-color: #3B82F6;
 }
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-
 html, body {
     height: 100%;
     font-family: var(--font-family);
@@ -30,7 +30,6 @@ html, body {
     color: var(--text-color);
     transition: background 0.3s ease, color 0.3s ease;
 }
-
 .topbar {
     position: fixed;
     top: 0;
@@ -45,63 +44,65 @@ html, body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     z-index: 100;
 }
-
 .btn-icon {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     color: var(--text-color);
     cursor: pointer;
-    transition: transform 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s, transform 0.3s;
 }
-
 .btn-icon:hover {
+    background: rgba(59, 130, 246, 0.1);
     transform: scale(1.1);
 }
-
 .sidebar {
     position: fixed;
     top: 0;
-    left: -280px;
+    left: 0;
     width: 280px;
     height: 100%;
     background: var(--surface-color);
-    box-shadow: 4px 0 32px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 32px rgba(0,0,0,0.05);
     padding: 24px 16px;
-    transition: left 0.3s ease;
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
     z-index: 90;
 }
-
 .sidebar.open {
-    left: 0;
+    transform: translateX(0);
 }
-
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    margin-top: 56px;
 }
-
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 8px 12px;
     border-radius: var(--border-radius);
-    background: var(--button-color);
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
-    transition: background 0.2s ease;
+    transition: background-color 0.2s, color 0.2s;
+    border-left: 4px solid transparent;
 }
-
+.nav-item i {
+    font-size: 1.25rem;
+}
 .nav-item:hover {
-    background: var(--accent-color);
+    background-color: rgba(59, 130, 246, 0.1);
 }
-
 .nav-item.active {
-    background: var(--accent-color);
+    background-color: rgba(59, 130, 246, 0.2);
+    border-left-color: var(--accent-color);
+    color: var(--accent-color);
+    font-weight: 500;
 }
-
 .profile-content {
     padding: 80px 16px 32px;
     display: grid;

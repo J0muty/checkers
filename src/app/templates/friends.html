@@ -1,26 +1,30 @@
 {% extends "profile_base.html" %}
 {% block title %}Друзья{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="/static/profile/profile.css">
-<link rel="stylesheet" href="/static/friends/friends.css">
+    <link rel="stylesheet" href="/static/profile/profile.css">
+    <link rel="stylesheet" href="/static/friends/friends.css">
 {% endblock %}
 {% block content %}
-    <input id="friend-search" placeholder="Поиск" class="search-input">
-    <div id="requests" class="friends-section" style="display:none;">
-        <h2>Заявки</h2>
-        <ul id="requests-list"></ul>
+    <div class="friends-wrapper">
+        <input id="friend-search" placeholder="Поиск" class="search-input">
+
+        <div id="results" class="friends-section" style="display:none;">
+            <h2>Результаты</h2>
+            <ul id="results-list"></ul>
+        </div>
+
+        <div id="requests" class="friends-section" style="display:none;">
+            <h2>Заявки</h2>
+            <ul id="requests-list"></ul>
+        </div>
+
+        <div id="friends" class="friends-section">
+            <h2>Друзья</h2>
+            <ul id="friends-list"></ul>
+        </div>
     </div>
-    <div id="friends" class="friends-section">
-        <h2>Друзья</h2>
-        <ul id="friends-list"></ul>
-    </div>
-    <div id="results" class="friends-section" style="display:none;">
-        <h2>Результаты</h2>
-        <ul id="results-list"></ul>
-    </div>
-    <div id="notification" class="notification" style="display:none;"></div>
 {% endblock %}
 {% block extra_js %}
-<script src="/static/profile/profile.js"></script>
-<script src="/static/friends/friends.js"></script>
+    <script src="/static/profile/profile.js"></script>
+    <script src="/static/friends/friends.js"></script>
 {% endblock %}

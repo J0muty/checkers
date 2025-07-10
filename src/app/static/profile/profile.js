@@ -9,14 +9,13 @@ async function loadStats() {
         document.getElementById('losses').textContent = data.losses;
         document.getElementById('elo').textContent = data.elo;
         document.getElementById('rank').textContent = data.rank;
-
         const icon = document.querySelector('.rank-icon');
         if (icon) {
             icon.src = `/static/images/profile/ranks/${encodeURIComponent(data.rank)}.png`;
             icon.alt = data.rank;
         }
-    } catch (e) {
-        console.error('Failed to load stats:', e);
+    } catch (error) {
+        console.error('Failed to load stats:', error);
     }
 }
 

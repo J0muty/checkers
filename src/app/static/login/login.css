@@ -1,40 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap');
+
+:root {
+    --background-color: #f3f4f6;
+    --surface-color: #ffffff;
+    --accent-color:  #3B82F6;
+    --button-color:  #2563EB;
+    --text-color:    #111827;
+    --secondary-text-color: #6B7280;
+    --font-family: 'Rubik', sans-serif;
+    --border-radius: 12px;
+}
+
+.dark-mode {
+    --background-color: #1F2937;
+    --surface-color:   #111827;
+    --button-color:    #1E40AF;
+    --text-color:      #F9FAFB;
+    --secondary-text-color: #9CA3AF;
+    --accent-color:    #3B82F6;
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #181A20;
-        --surface: #22232B;
-        --text-primary: #FFFFFF;
-        --text-secondary: #A3A6B7;
-        --button: #0057fa;
-        --accent-start: #4F8CFF;
-        --accent-end: #B94EFF;
-    }
-}
-@media (prefers-color-scheme: light) {
-    :root {
-        --background: #F6F8FB;
-        --surface: #FFFFFF;
-        --text-primary: #181A20;
-        --text-secondary: #7D8193;
-        --button: #2464DB;
-        --accent-start: #4F8CFF;
-        --accent-end: #B94EFF;
-    }
-}
-
-body {
-    background-color: var(--background);
-    color: var(--text-primary);
-    font-family: Arial, sans-serif;
+html, body {
+    height: 100%;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    transition: background 0.3s ease, color 0.3s ease;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+}
+
+.container {
+    position: relative;
+    background: var(--surface-color);
+    color: var(--text-color);
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 400px;
 }
 
 .back-arrow {
@@ -42,23 +53,13 @@ body {
     top: 20px;
     left: 20px;
     font-size: 20px;
-    color: var(--text-secondary);
+    color: var(--secondary-text-color);
     text-decoration: none;
     z-index: 2;
 }
 
 .back-arrow:hover {
-    color: var(--accent-start);
-}
-
-.container {
-    position: relative;
-    background-color: var(--surface);
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    width: 100%;
-    max-width: 400px;
+    color: var(--accent-color);
 }
 
 h1 {
@@ -75,10 +76,10 @@ h1 {
 .input-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid var(--text-secondary);
-    border-radius: 5px;
-    background-color: transparent;
-    color: var(--text-primary);
+    border: 1px solid var(--secondary-text-color);
+    border-radius: var(--border-radius);
+    background: transparent;
+    color: var(--text-color);
     font-size: 16px;
 }
 
@@ -91,10 +92,10 @@ h1 {
     top: 50%;
     left: 10px;
     transform: translateY(-50%);
-    color: var(--text-secondary);
+    color: var(--secondary-text-color);
     pointer-events: none;
     transition: all 0.3s ease;
-    background-color: var(--surface);
+    background: var(--surface-color);
     padding: 0 4px;
     z-index: 1;
 }
@@ -104,13 +105,13 @@ h1 {
     top: 0;
     left: 10px;
     font-size: 12px;
-    color: var(--accent-start);
+    color: var(--accent-color);
 }
 
 .input-group input:focus {
-    border-color: var(--accent-start);
+    border-color: var(--accent-color);
     outline: none;
-    box-shadow: 0 0 5px var(--accent-start);
+    box-shadow: 0 0 5px var(--accent-color);
 }
 
 .toggle-password {
@@ -124,7 +125,7 @@ h1 {
 .toggle-password svg {
     width: 24px;
     height: 24px;
-    stroke: var(--text-secondary);
+    stroke: var(--secondary-text-color);
 }
 
 .toggle-password .eye-slash {
@@ -134,27 +135,32 @@ h1 {
 button {
     width: 100%;
     padding: 10px;
-    background-color: var(--button);
-    color: #FFFFFF;
+    background: var(--button-color);
+    color: #ffffff;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     font-size: 16px;
     cursor: pointer;
-    transition: filter 0.3s;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-    filter: brightness(0.9);
+    background: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 p {
     text-align: center;
     margin-top: 20px;
-    color: var(--text-secondary);
+    color: var(--secondary-text-color);
 }
 
 p a {
-    color: var(--accent-start);
+    color: var(--accent-color);
     text-decoration: none;
 }
 
