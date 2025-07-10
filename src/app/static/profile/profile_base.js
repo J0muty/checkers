@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.theme === 'dark') {
         document.documentElement.classList.add('dark-mode');
         if (themeIcon) themeIcon.classList.replace('fa-moon', 'fa-sun');
+    } else {
+        document.documentElement.classList.remove('dark-mode');
+        if (themeIcon) themeIcon.classList.replace('fa-sun', 'fa-moon');
     }
 
     if (themeToggle) {

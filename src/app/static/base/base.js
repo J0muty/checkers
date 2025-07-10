@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const setTheme = theme => {
         if (theme === 'dark') {
             root.classList.add('dark-mode');
-            icon.classList.replace('fa-moon', 'fa-sun');
-        localStorage.theme = 'dark';
+            if (icon) icon.classList.replace('fa-moon', 'fa-sun');
         } else {
             root.classList.remove('dark-mode');
-            icon.classList.replace('fa-sun', 'fa-moon');
-            localStorage.theme = 'light';
+            if (icon) icon.classList.replace('fa-sun', 'fa-moon');
         }
     };
 
