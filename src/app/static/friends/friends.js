@@ -139,5 +139,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function buildWsUrl() {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        return `${proto}://${location.host}/ws/friends/${userId}`;
+    }
+
+    function setupWebSocket() {
+        const ws = new WebSocket(buildWsUrl());
+        ws.addEventListener('message', () => {
+            loadFriends();
+        });
+        ws.addEventListener('close', () => {
+            setTimeout(setupWebSocket, 1000);
+        });
+    }
+
     loadFriends();
+    if (typeof userId !== 'undefined') {
+        setupWebSocket();
+    }
 });

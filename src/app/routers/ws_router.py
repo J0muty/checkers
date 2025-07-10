@@ -27,6 +27,7 @@ class ConnectionManager:
 
 board_manager = ConnectionManager()
 waiting_manager = ConnectionManager()
+friends_manager = ConnectionManager()
 
 @ws_router.websocket("/ws/board/{board_id}")
 async def websocket_board(websocket: WebSocket, board_id: str):
@@ -46,3 +47,12 @@ async def websocket_waiting(websocket: WebSocket, user_id: str):
             await websocket.receive_text()
     except WebSocketDisconnect:
         waiting_manager.disconnect(user_id, websocket)
+
+@ws_router.websocket("/ws/friends/{user_id}")
+async def websocket_friends(websocket: WebSocket, user_id: str):
+    await friends_manager.connect(user_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        friends_manager.disconnect(user_id, websocket)

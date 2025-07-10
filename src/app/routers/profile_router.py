@@ -1,3 +1,4 @@
+import json
 from fastapi import Request, APIRouter, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from src.settings.settings import templates
@@ -11,6 +12,7 @@ from src.base.postgres import (
     cancel_friend_request,
     remove_friend,
 )
+from src.app.routers.ws_router import friends_manager
 
 profile_router = APIRouter()
 
@@ -27,7 +29,10 @@ async def friends(request: Request):
     user_id = request.session.get("user_id")
     if not user_id:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("friends.html", {"request": request})
+    return templates.TemplateResponse(
+        "friends.html", {"request": request, "user_id": str(user_id)}
+    )
+
 
 @profile_router.get("/api/friends")
 async def api_friends(request: Request):
@@ -66,6 +71,9 @@ async def api_friend_request(request: Request, to_id: int, action: str = "send")
         await remove_friend(uid, to_id)
     else:
         return JSONResponse({"error": "unknown action"}, status_code=400)
+    msg = json.dumps({"action": "update"})
+    await friends_manager.broadcast(str(uid), msg)
+    await friends_manager.broadcast(str(to_id), msg)
     return JSONResponse({"status": "ok"})
 
 @profile_router.get("/settings", response_class=HTMLResponse, name="settings")

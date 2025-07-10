@@ -25,6 +25,9 @@
     </div>
 {% endblock %}
 {% block extra_js %}
+    <script>
+        const userId = "{{ user_id }}";
+    </script>
     <script src="/static/profile/profile.js"></script>
     <script src="/static/friends/friends.js"></script>
 {% endblock %}
