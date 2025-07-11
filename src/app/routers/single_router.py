@@ -125,7 +125,8 @@ async def api_make_move(game_id: str, req: MoveRequest):
 
     if not status:
         bot_color = "black" if req.player == "white" else "white"
-        new_board, moves = await bot_turn(new_board, bot_color)
+        new_board, starts, ends = await bot_turn(new_board, bot_color)
+        moves = list(zip(starts, ends))
         await save_board_state(game_id, new_board)
         for i, (s, e) in enumerate(moves):
             notation = f"{chr(s[1] + 65)}{8 - s[0]}->{chr(e[1] + 65)}{8 - e[0]}"
@@ -152,6 +153,6 @@ async def api_resign(game_id: str, req: MoveRequest):
     await cleanup_board(game_id)
     history = await get_history(game_id)
     timers = await get_current_timers(game_id)
-    result = MoveResult(board=new_board, status=status, history=history, timers=timers)
+    result = MoveResult(board=board, status=status, history=history, timers=timers)
     await single_board_manager.broadcast(game_id, result.json())
     return result
