@@ -2,7 +2,7 @@ const statusBox = document.getElementById('statusBox');
 const timerEl = document.getElementById('statusTimer');
 const returnBtn = document.getElementById('statusReturn');
 const leaveBtn = document.getElementById('statusLeave');
-const modal = document.getElementById('leaveModal');
+const leaveModal = document.getElementById('leaveModal');
 const leaveYes = document.getElementById('leaveYes');
 const leaveNo = document.getElementById('leaveNo');
 const singleBtn = document.getElementById('singleBtn');
@@ -24,7 +24,6 @@ function buildBoardWsUrl(boardId) {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     return `${proto}://${location.host}/ws/board/${boardId}`;
 }
-
 
 function formatTime(sec) {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
@@ -90,7 +89,6 @@ async function updateStatus() {
     const res = await fetch('/api/user_status');
     if (!res.ok) return;
     const data = await res.json();
-
     if (data.board_id) {
         setupBoardWs(data.board_id);
         if (waitingWs) {
@@ -102,10 +100,10 @@ async function updateStatus() {
             window.location.href = `/board/${data.board_id}?player=${userId}&color=${data.color}`;
         };
         leaveBtn.onclick = () => {
-            modal.classList.add('active');
+            leaveModal.classList.add('active');
         };
         leaveYes.onclick = async () => {
-            modal.classList.remove('active');
+            leaveModal.classList.remove('active');
             await fetch(`/api/resign/${data.board_id}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -113,8 +111,7 @@ async function updateStatus() {
             });
             updateStatus();
         };
-        leaveNo.onclick = () => modal.classList.remove('active');
-
+        leaveNo.onclick = () => leaveModal.classList.remove('active');
         startInterval(async () => {
             const tRes = await fetch(`/api/timers/${data.board_id}`);
             if (!tRes.ok) return;
@@ -165,4 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = `/singleplayer/${id}?difficulty=${diff}&color=${color}`;
         });
     }
+    [leaveModal, singleModal].forEach(overlay => {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            [leaveModal, singleModal].forEach(o => o.classList.remove('active'));
+        }
+    });
 });

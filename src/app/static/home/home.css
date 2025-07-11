@@ -3,9 +3,9 @@
 :root {
     --background-color: #f3f4f6;
     --surface-color: #ffffff;
-    --accent-color:  #3B82F6;
-    --button-color:  #2563EB;
-    --text-color:    #111827;
+    --accent-color: #3B82F6;
+    --button-color: #2563EB;
+    --text-color: #111827;
     --secondary-text-color: #6B7280;
     --font-family: 'Rubik', sans-serif;
     --border-radius: 12px;
@@ -13,11 +13,11 @@
 
 .dark-mode {
     --background-color: #1F2937;
-    --surface-color:   #111827;
-    --button-color:    #1E40AF;
-    --text-color:      #F9FAFB;
+    --surface-color: #111827;
+    --button-color: #1E40AF;
+    --text-color: #F9FAFB;
     --secondary-text-color: #9CA3AF;
-    --accent-color:    #3B82F6;
+    --accent-color: #3B82F6;
 }
 
 * {
@@ -157,4 +157,94 @@ body {
 
 .btn-green {
     background: #10b981;
+}
+
+/* ---------- fancy single-player modal ---------- */
+
+.fancy-modal {
+    max-width: 480px;
+    width: 92%;
+    padding: 32px 24px;
+    border: none;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.15), 0 0 0 4px color-mix(in srgb, var(--accent-color) 25%, transparent);
+    animation: pop 220ms ease-out both;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+}
+
+.modal-title {
+    font-size: 1.4rem;
+    margin-bottom: 24px;
+}
+
+.modal-options {
+    display: grid;
+    gap: 32px; /* больше расстояние между блоками сложности и цвета */
+}
+
+.radio-group {
+    display: grid;
+    gap: 16px; /* больше расстояние между заголовком и вариантами */
+    border: 0;
+}
+
+.radio-group legend {
+    font-weight: 600;
+    margin-bottom: 16px; /* увеличенный отступ под заголовком */
+}
+
+input[type="radio"] {
+    display: none; /* скрыт но кликается через label */
+}
+
+.radio-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 2px solid var(--secondary-text-color);
+    border-radius: var(--border-radius);
+    background: var(--surface-color);
+    cursor: pointer;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+input[type="radio"]:checked + .radio-card {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px color-mix(in srgb, #3b82f6 40%, transparent);
+}
+
+input[type="radio"]:focus-visible + .radio-card {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color) 60%, transparent);
+}
+
+.swatch {
+    inline-size: 18px;
+    block-size: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--secondary-text-color);
+}
+
+.swatch-white {
+    background: #fff;
+}
+
+.swatch-black {
+    background: #000;
+}
+
+.dark-mode .radio-card {
+    background: var(--surface-color);
+}
+
+.dark-mode input[type="radio"]:checked + .radio-card {
+    background: var(--accent-color);
+    color: #fff;
 }
