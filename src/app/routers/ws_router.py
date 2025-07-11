@@ -28,9 +28,19 @@ class ConnectionManager:
                 self.disconnect(key, ws)
 
 board_manager = ConnectionManager()
+single_board_manager = ConnectionManager()
 waiting_manager = ConnectionManager()
 friends_manager = ConnectionManager()
 chat_manager = ConnectionManager()
+
+@ws_router.websocket("/ws/single/{game_id}")
+async def websocket_single_board(websocket: WebSocket, game_id: str):
+    await single_board_manager.connect(game_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        single_board_manager.disconnect(game_id, websocket)
 
 @ws_router.websocket("/ws/board/{board_id}")
 async def websocket_board(websocket: WebSocket, board_id: str):

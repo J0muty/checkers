@@ -397,7 +397,24 @@ function startTimers() {
     timerInterval = setInterval(updateTimerDisplay, 1000);
 }
 
+function buildWsUrl() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${proto}://${location.host}/ws/single/${boardId}`;
+}
+
+function setupWebSocket() {
+    const ws = new WebSocket(buildWsUrl());
+    ws.addEventListener('message', async (e) => {
+        const data = JSON.parse(e.data);
+        await handleUpdate(data);
+    });
+    ws.addEventListener('close', () => {
+        setTimeout(setupWebSocket, 1000);
+    });
+}
+
 fetchBoard();
+setupWebSocket();
 
 returnButton.addEventListener('click', () => {
     fetchBoard();

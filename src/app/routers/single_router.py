@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple
 
 from src.settings.settings import templates
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
+from src.app.routers.ws_router import single_board_manager
 from src.app.game.single_logic import bot_turn
 from src.base.single_redis import (
     get_board_state,
@@ -112,7 +113,9 @@ async def api_make_move(game_id: str, req: MoveRequest):
             timers = await apply_same_turn_timer(game_id, req.player)
             history = await get_history(game_id)
             timers_view = await get_current_timers(game_id)
-            return MoveResult(board=new_board, status=None, history=history, timers=timers_view)
+            result = MoveResult(board=new_board, status=None, history=history, timers=timers_view)
+            await single_board_manager.broadcast(game_id, result.json())
+            return result
         else:
             timers = await apply_move_timer(game_id, req.player)
     else:
@@ -149,4 +152,6 @@ async def api_resign(game_id: str, req: MoveRequest):
     await cleanup_board(game_id)
     history = await get_history(game_id)
     timers = await get_current_timers(game_id)
-    return MoveResult(board=board, status=status, history=history, timers=timers)
+    result = MoveResult(board=new_board, status=status, history=history, timers=timers)
+    await single_board_manager.broadcast(game_id, result.json())
+    return result
