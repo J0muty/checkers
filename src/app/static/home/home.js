@@ -161,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         startSingleBtn.addEventListener('click', () => {
             const diff = document.querySelector('input[name="difficulty"]:checked').value;
             const color = document.querySelector('input[name="spcolor"]:checked').value;
-            window.location.href = `/singleplayer_${diff}?color=${color}`;
+            const id = crypto.randomUUID();
+            window.location.href = `/singleplayer/${id}?difficulty=${diff}&color=${color}`;
         });
     }
 });
