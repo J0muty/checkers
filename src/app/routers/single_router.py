@@ -185,3 +185,21 @@ async def api_resign(game_id: str, req: MoveRequest):
     result = MoveResult(board=board, status=status, history=history, timers=timers)
     await single_board_manager.broadcast(game_id, result.json())
     return result
+
+
+@single_router.post("/api/single/check_timeout/{game_id}", response_model=MoveResult)
+async def api_single_check_timeout(game_id: str):
+    board = await get_board_state(game_id)
+    timers = await get_current_timers(game_id)
+    history = await get_history(game_id)
+    active = timers["turn"]
+    status = None
+    if timers[active] <= 0:
+        status = "black_win" if active == "white" else "white_win"
+    if not status:
+        return MoveResult(board=board, status=None, history=history, timers=timers)
+
+    await cleanup_board(game_id)
+    result = MoveResult(board=board, status=status, history=history, timers=timers)
+    await single_board_manager.broadcast(game_id, result.json())
+    return result

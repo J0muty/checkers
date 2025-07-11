@@ -408,12 +408,30 @@ function updateTimerDisplay() {
     else b = Math.max(0, b - elapsed);
     timer1.textContent = formatTime(w);
     timer2.textContent = formatTime(b);
+    if (!gameOver && (w <= 0 || b <= 0)) {
+        clearInterval(timerInterval);
+        checkTimeout();
+    }
 }
 
 function startTimers() {
     clearInterval(timerInterval);
     updateTimerDisplay();
     timerInterval = setInterval(updateTimerDisplay, 1000);
+}
+
+async function checkTimeout() {
+    try {
+        const res = await fetch(`/api/check_timeout/${boardId}`, { method: 'POST' });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status) {
+                await handleUpdate(data);
+            }
+        }
+    } catch (e) {
+        console.error('timeout check failed', e);
+    }
 }
 
 function buildWsUrl() {

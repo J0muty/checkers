@@ -259,3 +259,36 @@ async def api_draw_response(board_id: str, resp: DrawResponse):
     else:
         await board_manager.broadcast(board_id, json.dumps({"type": "draw_declined"}))
         return {"status": "declined"}
+
+
+@board_router.post("/api/check_timeout/{board_id}", response_model=MoveResult)
+async def api_check_timeout(board_id: str):
+    board = await get_board_state(board_id)
+    timers = await get_current_timers(board_id)
+    history = await get_history(board_id)
+    active = timers["turn"]
+    status = None
+    if timers[active] <= 0:
+        status = "black_win" if active == "white" else "white_win"
+    if not status:
+        return MoveResult(board=board, status=None, history=history, timers=timers)
+
+    players = await get_board_players(board_id)
+    rating_change = None
+    if players:
+        white_id = int(players.get("white"))
+        black_id = int(players.get("black"))
+        white_stats = await get_user_stats(white_id)
+        black_stats = await get_user_stats(black_id)
+        rating_change = {}
+        if status == "white_win":
+            rating_change["white"] = await record_game_result(white_id, "win", black_stats["elo"])
+            rating_change["black"] = await record_game_result(black_id, "loss", white_stats["elo"])
+        else:
+            rating_change["white"] = await record_game_result(white_id, "loss", black_stats["elo"])
+            rating_change["black"] = await record_game_result(black_id, "win", white_stats["elo"])
+
+    await cleanup_board(board_id)
+    result = MoveResult(board=board, status=status, history=history, timers=timers, rating_change=rating_change)
+    await board_manager.broadcast(board_id, result.json())
+    return result
