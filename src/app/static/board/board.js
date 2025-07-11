@@ -127,6 +127,8 @@ async function autoMoveIfSingle() {
     if (forcedPieces.length === 1 && forcedPieces[0].moves.length === 1) {
         isPerformingAutoMove = true;
         try {
+            await fetchBoard();
+            if (!(forcedPieces.length === 1 && forcedPieces[0].moves.length === 1)) return;
             const fp = forcedPieces[0];
             selected = { row: fp.row, col: fp.col, isCapture: true };
             possibleMoves = fp.moves;
