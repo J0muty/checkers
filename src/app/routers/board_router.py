@@ -24,7 +24,7 @@ from src.base.redis import (
     clear_draw_offer,
 )
 from src.app.game.game_logic import validate_move, piece_capture_moves, game_status
-from src.base.postgres import record_game_result, get_user_stats
+from src.base.postgres import record_game_result, get_user_stats, get_user_login
 
 Board = List[List[Optional[str]]]
 Point = Tuple[int, int]
@@ -48,6 +48,7 @@ class BoardState(BaseModel):
     board: Board
     history: List[str]
     timers: Timers
+    players: Optional[dict[str, str]] = None
 
 
 class MoveResult(BaseModel):
@@ -55,6 +56,7 @@ class MoveResult(BaseModel):
     status: Optional[str]
     history: List[str]
     timers: Timers
+    rating_change: Optional[dict[str, int]] = None
 
 
 class PlayerAction(BaseModel):
@@ -93,7 +95,14 @@ async def api_get_board(board_id: str):
     board = await get_board_state(board_id)
     history = await get_history(board_id)
     timers = await get_current_timers(board_id)
-    return BoardState(board=board, history=history, timers=timers)
+    players_raw = await get_board_players(board_id)
+    players = None
+    if players_raw:
+        players = {}
+        for color, uid in players_raw.items():
+            login = await get_user_login(int(uid))
+            players[color] = login or str(uid)
+    return BoardState(board=board, history=history, timers=timers, players=players)
 
 @board_router.get("/api/timers/{board_id}", response_model=Timers)
 async def api_get_timers(board_id: str):
@@ -153,6 +162,7 @@ async def api_make_move(board_id: str, req: MoveRequest):
     else:
         status = game_status(new_board)
 
+    rating_change = None
     if status:
         players = await get_board_players(board_id)
         if players:
@@ -160,15 +170,16 @@ async def api_make_move(board_id: str, req: MoveRequest):
             black_id = int(players.get("black"))
             white_stats = await get_user_stats(white_id)
             black_stats = await get_user_stats(black_id)
+            rating_change = {}
             if status == "white_win":
-                await record_game_result(white_id, "win", black_stats["elo"])
-                await record_game_result(black_id, "loss", white_stats["elo"])
+                rating_change["white"] = await record_game_result(white_id, "win", black_stats["elo"])
+                rating_change["black"] = await record_game_result(black_id, "loss", white_stats["elo"])
             elif status == "black_win":
-                await record_game_result(white_id, "loss", black_stats["elo"])
-                await record_game_result(black_id, "win", white_stats["elo"])
+                rating_change["white"] = await record_game_result(white_id, "loss", black_stats["elo"])
+                rating_change["black"] = await record_game_result(black_id, "win", white_stats["elo"])
             else:
-                await record_game_result(white_id, "draw", black_stats["elo"])
-                await record_game_result(black_id, "draw", white_stats["elo"])
+                rating_change["white"] = await record_game_result(white_id, "draw", black_stats["elo"])
+                rating_change["black"] = await record_game_result(black_id, "draw", white_stats["elo"])
         await cleanup_board(board_id)
 
     history = await get_history(board_id)
@@ -178,6 +189,7 @@ async def api_make_move(board_id: str, req: MoveRequest):
         status=status,
         history=history,
         timers=current_timers,
+        rating_change=rating_change,
     )
     await board_manager.broadcast(board_id, result.json())
     return result
@@ -197,16 +209,17 @@ async def api_resign(board_id: str, action: PlayerAction):
         black_id = int(players.get("black"))
         white_stats = await get_user_stats(white_id)
         black_stats = await get_user_stats(black_id)
+        rating_change = {}
         if status == "white_win":
-            await record_game_result(white_id, "win", black_stats["elo"])
-            await record_game_result(black_id, "loss", white_stats["elo"])
+            rating_change["white"] = await record_game_result(white_id, "win", black_stats["elo"])
+            rating_change["black"] = await record_game_result(black_id, "loss", white_stats["elo"])
         else:
-            await record_game_result(white_id, "loss", black_stats["elo"])
-            await record_game_result(black_id, "win", white_stats["elo"])
+            rating_change["white"] = await record_game_result(white_id, "loss", black_stats["elo"])
+            rating_change["black"] = await record_game_result(black_id, "win", white_stats["elo"])
     await cleanup_board(board_id)
     history = await get_history(board_id)
     timers = await get_current_timers(board_id)
-    result = MoveResult(board=board, status=status, history=history, timers=timers)
+    result = MoveResult(board=board, status=status, history=history, timers=timers, rating_change=rating_change)
     await board_manager.broadcast(board_id, result.json())
     return result
 
@@ -227,17 +240,20 @@ async def api_draw_response(board_id: str, resp: DrawResponse):
     if resp.accept and offer and resp.player != offer:
         board = await get_board_state(board_id)
         players = await get_board_players(board_id)
+        rating_change = None
         if players:
             white_id = int(players.get("white"))
             black_id = int(players.get("black"))
             white_stats = await get_user_stats(white_id)
             black_stats = await get_user_stats(black_id)
-            await record_game_result(white_id, "draw", black_stats["elo"])
-            await record_game_result(black_id, "draw", white_stats["elo"])
+            rating_change = {
+                "white": await record_game_result(white_id, "draw", black_stats["elo"]),
+                "black": await record_game_result(black_id, "draw", white_stats["elo"]),
+            }
         await cleanup_board(board_id)
         history = await get_history(board_id)
         timers = await get_current_timers(board_id)
-        result = MoveResult(board=board, status="draw", history=history, timers=timers)
+        result = MoveResult(board=board, status="draw", history=history, timers=timers, rating_change=rating_change)
         await board_manager.broadcast(board_id, result.json())
         return result
     else:

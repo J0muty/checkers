@@ -11,6 +11,10 @@ const cancelResignBtn = document.getElementById('cancelResignBtn');
 const drawOfferModal = document.getElementById('drawOfferModal');
 const acceptDrawBtn = document.getElementById('acceptDrawBtn');
 const declineDrawBtn = document.getElementById('declineDrawBtn');
+const resultModal = document.getElementById('resultModal');
+const resultText = document.getElementById('resultText');
+const resultHomeBtn = document.getElementById('resultHomeBtn');
+const resultCloseBtn = document.getElementById('resultCloseBtn');
 const letters = ['', 'A','B','C','D','E','F','G','H',''];
 const numbers = ['', '8','7','6','5','4','3','2','1',''];
 const myColor = typeof playerColor !== 'undefined' && playerColor ? playerColor : null;
@@ -143,6 +147,10 @@ async function handleUpdate(data) {
     viewedMoveIndex = data.history.length;
     updateHistory(data.history);
     viewingHistory = false;
+    if (data.players) {
+        if (data.players.white) player1.querySelector('.player-name').textContent = data.players.white;
+        if (data.players.black) player2.querySelector('.player-name').textContent = data.players.black;
+    }
     returnButton.style.display = 'none';
     setActivePlayer(turn);
     startTimers();
@@ -153,12 +161,21 @@ async function handleUpdate(data) {
         await autoMoveIfSingle();
     }
 
-    if (data.status) {
-        if (data.status === 'white_win') alert('Белые победили!');
-        else if (data.status === 'black_win') alert('Чёрные победили!');
-        else if (data.status === 'draw') alert('Ничья!');
+    if (data.status && !gameOver) {
         gameOver = true;
-        window.location.href = '/';
+        let msg = '';
+        if (data.status === 'white_win') msg = 'Белые победили!';
+        else if (data.status === 'black_win') msg = 'Чёрные победили!';
+        else msg = 'Ничья!';
+        if (data.rating_change && myColor) {
+            const delta = data.rating_change[myColor];
+            if (typeof delta === 'number') {
+                const sign = delta > 0 ? '+' : '';
+                msg += ` (${sign}${delta} Elo)`;
+            }
+        }
+        resultText.textContent = msg;
+        showModal(resultModal);
     }
 }
 
@@ -491,3 +508,11 @@ async function respondDraw(accept) {
         await handleUpdate(data);
     }
 }
+
+resultHomeBtn.addEventListener('click', () => {
+    window.location.href = '/';
+});
+
+resultCloseBtn.addEventListener('click', () => {
+    hideModal(resultModal);
+});

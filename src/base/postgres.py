@@ -61,11 +61,14 @@ async def create_user(login: str, email: str, password: str, session: AsyncSessi
     return user
 
 @connect
-async def record_game_result(user_id: int, result: str, opponent_elo: int, session: AsyncSession) -> None:
+async def record_game_result(
+    user_id: int, result: str, opponent_elo: int, session: AsyncSession
+) -> int:
     stats = await session.get(UserStats, user_id)
     if not stats:
         stats = UserStats(user_id=user_id, total_games=0, wins=0, draws=0, losses=0, elo=0, rank="Новичок")
         session.add(stats)
+    old_elo = stats.elo or 0
     stats.total_games = (stats.total_games or 0) + 1
     if result == "win":
         stats.wins = (stats.wins or 0) + 1
@@ -75,9 +78,10 @@ async def record_game_result(user_id: int, result: str, opponent_elo: int, sessi
         stats.draws = (stats.draws or 0) + 1
     else:
         raise ValueError(f"Unknown result type: {result}")
-    stats.elo = update_elo(stats.elo or 0, opponent_elo, result)
+    stats.elo = update_elo(old_elo, opponent_elo, result)
     stats.rank = calculate_rank(stats.elo)
     await session.commit()
+    return stats.elo - old_elo
 
 @connect
 async def authenticate_user(login_or_email: str, password: str, session: AsyncSession) -> User | None:
