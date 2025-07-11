@@ -39,6 +39,7 @@ class BoardState(BaseModel):
     board: Board
     history: List[str]
     timers: Timers
+    players: Optional[dict[str, str]] = None
 
 class MoveResult(BaseModel):
     board: Board
@@ -66,11 +67,14 @@ async def single_page(request: Request, game_id: str, difficulty: str = "easy", 
     )
 
 @single_router.get("/api/single/board/{game_id}", response_model=BoardState)
-async def api_get_board(game_id: str):
+async def api_get_board(game_id: str, color: str = "white"):
     board = await get_board_state(game_id)
     history = await get_history(game_id)
     timers = await get_current_timers(game_id)
-    return BoardState(board=board, history=history, timers=timers)
+    players = {"white": "Вы", "black": "Бот"}
+    if color == "black":
+        players = {"white": "Бот", "black": "Вы"}
+    return BoardState(board=board, history=history, timers=timers, players=players)
 
 @single_router.get("/api/single/moves/{game_id}", response_model=List[Point])
 async def api_get_moves(game_id: str, row: int, col: int, player: str):
