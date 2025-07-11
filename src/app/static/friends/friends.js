@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatTitle = document.getElementById('chat-title');
     const chatBack = document.getElementById('chat-back');
 
-    function showNotification(message, duration = 2500) {
+    function showNotification(message, type = 'success', duration = 2500) {
+        if (typeof type === 'number') {
+            duration = type;
+            type = 'success';
+        }
+        let conta
         let container = document.querySelector('.toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -22,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(container);
         }
         const toast = document.createElement('div');
-        toast.className = 'toast';
+        toast.className = `toast ${type}`;
         toast.style.setProperty('--toast-duration', duration + 'ms');
         toast.textContent = message;
         container.appendChild(toast);
@@ -134,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error('Failed to load friends:', err);
+            showNotification('Ошибка загрузки друзей', 'error');
         }
     }
 
@@ -166,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsBlock.style.display = data.users.length ? 'block' : 'none';
         } catch (err) {
             console.error('Failed to search users:', err);
+            showNotification('Ошибка поиска пользователей', 'error');
         }
     }
 
@@ -190,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (err) {
             console.error('Failed to load chats:', err);
+            showNotification('Ошибка загрузки чатов', 'error');
         }
     }
 
