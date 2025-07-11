@@ -1,4 +1,5 @@
 import random
+import asyncio
 from typing import List, Tuple
 
 from .game_logic import (
@@ -38,16 +39,20 @@ async def random_bot_move(board: Board, player: str) -> Tuple[Board, Tuple[int, 
     new_board = await validate_move(board, start, end, player)
     return new_board, start, end
 
-async def bot_turn(board: Board, player: str) -> Tuple[Board, List[Tuple[int, int]], List[Tuple[int, int]]]:
+async def bot_turn(
+    board: Board, player: str
+) -> Tuple[Board, List[Tuple[int, int]], List[Tuple[int, int]]]:
     board, start, end = await random_bot_move(board, player)
     if start == (-1, -1):
         return board, [], []
     starts = [start]
     ends = [end]
-    while True:
+    is_capture = abs(end[0] - start[0]) > 1 or abs(end[1] - start[1]) > 1
+    while is_capture:
         caps = piece_capture_moves(board, end, player)
         if not caps:
             break
+        await asyncio.sleep(0.5)
         dest = random.choice(caps)
         board = await validate_move(board, end, dest, player)
         start = end

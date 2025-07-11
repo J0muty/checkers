@@ -111,6 +111,14 @@ async def api_make_move(game_id: str, req: MoveRequest):
         more_captures = bool(piece_capture_moves(new_board, req.end, req.player))
         if more_captures:
             timers = await apply_same_turn_timer(game_id, req.player)
+            if timers[req.player] <= 0:
+                status = "black_win" if req.player == "white" else "white_win"
+                await cleanup_board(game_id)
+                history = await get_history(game_id)
+                timers_view = await get_current_timers(game_id)
+                result = MoveResult(board=new_board, status=status, history=history, timers=timers_view)
+                await single_board_manager.broadcast(game_id, result.json())
+                return result
             history = await get_history(game_id)
             timers_view = await get_current_timers(game_id)
             result = MoveResult(board=new_board, status=None, history=history, timers=timers_view)
@@ -120,6 +128,15 @@ async def api_make_move(game_id: str, req: MoveRequest):
             timers = await apply_move_timer(game_id, req.player)
     else:
         timers = await apply_move_timer(game_id, req.player)
+
+    if timers[req.player] <= 0:
+        status = "black_win" if req.player == "white" else "white_win"
+        await cleanup_board(game_id)
+        history = await get_history(game_id)
+        timers_view = await get_current_timers(game_id)
+        result = MoveResult(board=new_board, status=status, history=history, timers=timers_view)
+        await single_board_manager.broadcast(game_id, result.json())
+        return result
 
     status = game_status(new_board)
 
@@ -135,6 +152,14 @@ async def api_make_move(game_id: str, req: MoveRequest):
                 await apply_same_turn_timer(game_id, bot_color)
         if moves:
             timers = await apply_move_timer(game_id, bot_color)
+            if timers[bot_color] <= 0:
+                status = "white_win" if bot_color == "black" else "black_win"
+                await cleanup_board(game_id)
+                history = await get_history(game_id)
+                timers_view = await get_current_timers(game_id)
+                result = MoveResult(board=new_board, status=status, history=history, timers=timers_view)
+                await single_board_manager.broadcast(game_id, result.json())
+                return result
         status = game_status(new_board)
 
     history = await get_history(game_id)
