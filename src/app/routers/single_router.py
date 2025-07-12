@@ -24,6 +24,7 @@ Board = List[List[Optional[str]]]
 Point = Tuple[int, int]
 
 single_router = APIRouter()
+game_difficulties: dict[str, str] = {}
 
 class MoveRequest(BaseModel):
     start: Point
@@ -56,6 +57,7 @@ async def single_redirect(request: Request, difficulty: str = "easy", color: str
 
 @single_router.get("/singleplayer/{game_id}", response_class=HTMLResponse, name="single_page")
 async def single_page(request: Request, game_id: str, difficulty: str = "easy", color: str = "white"):
+    game_difficulties[game_id] = difficulty
     return templates.TemplateResponse(
         "singleplayer.html",
         {
@@ -97,20 +99,16 @@ async def api_get_captures(game_id: str, row: int, col: int, player: str):
 @single_router.post("/api/single/move/{game_id}", response_model=MoveResult)
 async def api_make_move(game_id: str, req: MoveRequest):
     board = await get_board_state(game_id)
-
     try:
         new_board = await validate_move(board, req.start, req.end, req.player)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
     await save_board_state(game_id, new_board)
     move_notation = f"{chr(req.start[1] + 65)}{8 - req.start[0]}->{chr(req.end[1] + 65)}{8 - req.end[0]}"
     await append_history(game_id, move_notation)
-
     dr = abs(req.end[0] - req.start[0])
     dc = abs(req.end[1] - req.start[1])
     is_capture = dr > 1 or dc > 1
-
     if is_capture:
         more_captures = bool(piece_capture_moves(new_board, req.end, req.player))
         if more_captures:
@@ -132,7 +130,6 @@ async def api_make_move(game_id: str, req: MoveRequest):
             timers = await apply_move_timer(game_id, req.player)
     else:
         timers = await apply_move_timer(game_id, req.player)
-
     if timers[req.player] <= 0:
         status = "black_win" if req.player == "white" else "white_win"
         await cleanup_board(game_id)
@@ -141,12 +138,11 @@ async def api_make_move(game_id: str, req: MoveRequest):
         result = MoveResult(board=new_board, status=status, history=history, timers=timers_view)
         await single_board_manager.broadcast(game_id, result.json())
         return result
-
     status = game_status(new_board)
-
     if not status:
         bot_color = "black" if req.player == "white" else "white"
-        new_board, starts, ends = await bot_turn(new_board, bot_color)
+        difficulty = game_difficulties.get(game_id, "easy")
+        new_board, starts, ends = await bot_turn(new_board, bot_color, difficulty)
         moves = list(zip(starts, ends))
         await save_board_state(game_id, new_board)
         for i, (s, e) in enumerate(moves):
@@ -165,7 +161,6 @@ async def api_make_move(game_id: str, req: MoveRequest):
                 await single_board_manager.broadcast(game_id, result.json())
                 return result
         status = game_status(new_board)
-
     history = await get_history(game_id)
     timers = await get_current_timers(game_id)
     return MoveResult(board=new_board, status=status, history=history, timers=timers)
@@ -186,7 +181,6 @@ async def api_resign(game_id: str, req: MoveRequest):
     await single_board_manager.broadcast(game_id, result.json())
     return result
 
-
 @single_router.post("/api/single/check_timeout/{game_id}", response_model=MoveResult)
 async def api_single_check_timeout(game_id: str):
     board = await get_board_state(game_id)
@@ -198,7 +192,6 @@ async def api_single_check_timeout(game_id: str):
         status = "black_win" if active == "white" else "white_win"
     if not status:
         return MoveResult(board=board, status=None, history=history, timers=timers)
-
     await cleanup_board(game_id)
     result = MoveResult(board=board, status=status, history=history, timers=timers)
     await single_board_manager.broadcast(game_id, result.json())
